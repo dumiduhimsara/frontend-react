@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Phone, Lock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom'; // පිටු අතර මාරු වෙන්න
-import bgImage from '../assets/bg.jpg'; 
+import bgImage from '../assets/bg.webp'; // අගට .webp කියලා දාන්න
 
 const LoginPage = () => {
   const [phone, setPhone] = useState('');
