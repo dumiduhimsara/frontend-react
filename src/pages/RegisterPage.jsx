@@ -16,20 +16,25 @@ const RegisterPage = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleRegister = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            // මෙතනට ඔයාගේ Railway/Vercel Backend URL එක දාන්න
-            const res = await axios.post("https://ඔයාගේ-backend-url.railway.app/register-shop", formData);
-            alert("නියමයි! ලියාපදිංචිය සාර්ථකයි. 🎉");
-            navigate('/'); 
-        } catch (err) {
-            alert(err.response?.data?.message || "ලියාපදිංචිය අසාර්ථකයි. නැවත උත්සාහ කරන්න.");
-        } finally {
-            setLoading(false);
-        }
-    };
+   // RegisterPage.jsx ඇතුළේ handleRegister function එක මෙහෙම වෙනස් කරන්න:
+
+const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    console.log("Calling API URL:", import.meta.env.VITE_API_URL);
+    try {
+        // Hardcoded URL එක වෙනුවට env variable එක පාවිච්චි කිරීම 👇
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const res = await axios.post(`${apiUrl}/register-shop`, formData);
+        
+        alert("නියමයි! ලියාපදිංචිය සාර්ථකයි. 🎉");
+        navigate('/'); 
+    } catch (err) {
+        alert(err.response?.data?.message || "ලියාපදිංචිය අසාර්ථකයි.");
+    } finally {
+        setLoading(false);
+    }
+};
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4 bg-cover bg-center bg-no-repeat relative"
