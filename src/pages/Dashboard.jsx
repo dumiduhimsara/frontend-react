@@ -1,4 +1,5 @@
-import React, { useState } from 'react'; // ✅ useState එක් කළා
+import React, { useState } from 'react'; 
+import AddCustomerModal from '../components/AddCustomerModal';
 import { 
   LayoutDashboard, 
   Users, 
@@ -8,14 +9,16 @@ import {
   LogOut,
   TrendingUp,
   UserPlus,
-  Menu, // ✅ අලුතින් එක් කළා
-  X     // ✅ අලුතින් එක් කළා
+  Menu,
+  X     
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // ✅ Sidebar එක පාලනය කිරීමට
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
@@ -111,12 +114,16 @@ const Dashboard = () => {
                         <p className="text-slate-500 max-w-xs mt-2 text-sm font-medium">
                             ඔබේ පළමු පාරිභෝගිකයා එකතු කිරීමෙන් හෝ භාණ්ඩ ඇතුළත් කිරීමෙන් වැඩේ පටන් ගන්න.
                         </p>
-                        <button className="mt-6 px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+                        <button 
+                               onClick={() => setIsModalOpen(true)} 
+                            className="mt-6 px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+>
                             දත්ත ඇතුළත් කරන්න
                         </button>
                     </div>
                 </div>
             </main>
+            <AddCustomerModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
     );
 };
