@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, Lock, User, Store, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Phone, Lock, User, Store, ArrowRight, ShieldCheck, MapPin, IdCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import bgImage from '../assets/bg.webp';

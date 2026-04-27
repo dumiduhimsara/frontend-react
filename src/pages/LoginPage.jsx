@@ -67,7 +67,7 @@ const LoginPage = () => {
 
           <div className="mt-8 text-center border-t border-white/20 pt-6">
             <button 
-              onClick={() => navigate('/register')} // Register page එකට යන්න
+              onClick={() => navigate('/register')} 
               className="text-blue-900 font-extrabold hover:text-blue-700 transition-colors drop-shadow-sm"
             >
               අලුත් ගිණුමක් ආරම්භ කරන්න
