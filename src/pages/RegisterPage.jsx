@@ -9,6 +9,8 @@ const RegisterPage = () => {
         shopName: '',
         ownerName: '',
         phone: '',
+        shopAddress: '', 
+        nicNumber: '',
         password: ''
     });
     const [loading, setLoading] = useState(false);
@@ -84,6 +86,30 @@ const RegisterPage = () => {
                                 onChange={(e) => setFormData({...formData, phone: e.target.value})} 
                             />
                         </div>
+
+                         // --- Shop Address Input ---
+<div className="relative group">
+    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-800 transition-colors group-focus-within:text-blue-600" />
+    <input 
+        required
+        type="text" 
+        placeholder="කඩේ ලිපිනය (Shop Address)" 
+        className="w-full pl-12 pr-4 py-4 bg-white/50 border border-white/50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all font-bold text-blue-950 placeholder:text-blue-900/50"
+        onChange={(e) => setFormData({...formData, shopAddress: e.target.value})} 
+    />
+</div>
+
+// --- NIC Number Input ---
+<div className="relative group">
+    <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-800 transition-colors group-focus-within:text-blue-600" />
+    <input 
+        required
+        type="text" 
+        placeholder="හිමිකරුගේ හැඳුනුම්පත් අංකය (NIC)" 
+        className="w-full pl-12 pr-4 py-4 bg-white/50 border border-white/50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all font-bold text-blue-950 placeholder:text-blue-900/50"
+        onChange={(e) => setFormData({...formData, nicNumber: e.target.value})} 
+    />
+</div>
 
                         {/* Password */}
                         <div className="relative group">
