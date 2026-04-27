@@ -87,7 +87,6 @@ const RegisterPage = () => {
                             />
                         </div>
 
-                         // --- Shop Address Input ---
 <div className="relative group">
     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-800 transition-colors group-focus-within:text-blue-600" />
     <input 
@@ -99,7 +98,6 @@ const RegisterPage = () => {
     />
 </div>
 
-// --- NIC Number Input ---
 <div className="relative group">
     <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-800 transition-colors group-focus-within:text-blue-600" />
     <input 
