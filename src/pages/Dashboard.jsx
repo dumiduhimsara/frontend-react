@@ -22,9 +22,9 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
-            {/* Sidebar */}
-            <aside className="w-64 bg-blue-950 text-white flex flex-col hidden md:flex">
+        <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+            {/* Sidebar (Desktop Only) */}
+            <aside className="w-64 bg-blue-950 text-white flex flex-col hidden md:flex h-screen sticky top-0">
                 <div className="p-6">
                     <h1 className="text-xl font-black tracking-tighter text-blue-400 uppercase">
                         SSK Manager
@@ -54,33 +54,33 @@ const Dashboard = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+            <main className="flex-1 flex flex-col min-h-screen overflow-y-auto pb-24 md:pb-8">
                 {/* Header */}
                 <header className="bg-white border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
                     <div>
-                        <h2 className="text-2xl font-black text-slate-800">ආයුබෝවන්, {merchantName}!</h2>
-                        <p className="text-slate-500 text-sm font-medium">{shopName} පාලන පුවරුව</p>
+                        <h2 className="text-xl md:text-2xl font-black text-slate-800">ආයුබෝවන්, {merchantName}!</h2>
+                        <p className="text-slate-500 text-xs md:text-sm font-medium">{shopName} පාලන පුවරුව</p>
                     </div>
-                    <div className="h-12 w-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-600/20">
+                    <div className="h-10 w-10 md:h-12 md:w-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg md:text-xl shadow-lg shadow-blue-600/20">
                         {merchantName[0]}
                     </div>
                 </header>
 
-                <div className="p-8">
+                <div className="p-4 md:p-8">
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
                         <StatCard icon={<Users className="text-blue-600" />} label="මුළු පාරිභෝගිකයින්" value="0" trend="+0%" color="bg-blue-50" />
                         <StatCard icon={<TrendingUp className="text-emerald-600" />} label="අද විකුණුම්" value="Rs. 0.00" trend="+0%" color="bg-emerald-50" />
                         <StatCard icon={<UserPlus className="text-purple-600" />} label="අලුත් ලියාපදිංචි" value="0" trend="New" color="bg-purple-50" />
                     </div>
 
                     {/* Quick Actions / Content Area */}
-                    <div className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-sm min-h-[400px] flex flex-col items-center justify-center text-center">
+                    <div className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-sm min-h-[300px] flex flex-col items-center justify-center text-center">
                         <div className="bg-slate-100 p-6 rounded-full mb-4">
                             <Package size={48} className="text-slate-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-800">තාම දත්ත මොකුත් නැහැ</h3>
-                        <p className="text-slate-500 max-w-xs mt-2">
+                        <h3 className="text-lg md:text-xl font-bold text-slate-800">තාම දත්ත මොකුත් නැහැ</h3>
+                        <p className="text-slate-500 max-w-xs mt-2 text-sm">
                             ඔබේ පළමු පාරිභෝගිකයා එකතු කිරීමෙන් හෝ භාණ්ඩ ඇතුළත් කිරීමෙන් වැඩේ පටන් ගන්න.
                         </p>
                         <button className="mt-6 px-8 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
@@ -89,6 +89,15 @@ const Dashboard = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Mobile Bottom Navigation (Visible only on small screens) */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+                <MobileNavItem icon={<LayoutDashboard size={20}/>} label="මුල" active />
+                <MobileNavItem icon={<Users size={20}/>} label="අය" />
+                <MobileNavItem icon={<Package size={20}/>} label="බඩු" />
+                <MobileNavItem icon={<ShoppingCart size={20}/>} label="ඇණවුම්" />
+                <MobileNavItem icon={<Settings size={20}/>} label="Settings" />
+            </div>
         </div>
     );
 };
@@ -103,6 +112,13 @@ const NavItem = ({ icon, label, active = false }) => (
     </div>
 );
 
+const MobileNavItem = ({ icon, label, active = false }) => (
+    <div className={`flex flex-col items-center space-y-1 ${active ? 'text-blue-600' : 'text-slate-400'}`}>
+        {icon}
+        <span className="text-[10px] font-black uppercase tracking-wider">{label}</span>
+    </div>
+);
+
 const StatCard = ({ icon, label, value, trend, color }) => (
     <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all">
         <div className="flex justify-between items-start mb-4">
@@ -113,8 +129,8 @@ const StatCard = ({ icon, label, value, trend, color }) => (
                 {trend}
             </span>
         </div>
-        <h4 className="text-slate-500 text-xs font-bold uppercase tracking-widest">{label}</h4>
-        <p className="text-2xl font-black text-slate-800 mt-1">{value}</p>
+        <h4 className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">{label}</h4>
+        <p className="text-xl md:text-2xl font-black text-slate-800 mt-1">{value}</p>
     </div>
 );
 
