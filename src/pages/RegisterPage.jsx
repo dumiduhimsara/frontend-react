@@ -81,7 +81,7 @@ const RegisterPage = () => {
                             <input 
                                 required
                                 type="tel" 
-                                placeholder="දුරකථන අංකය" 
+                                placeholder="දුරකථන අංකය (Phone Number)" 
                                 className="w-full pl-12 pr-4 py-4 bg-white/50 border border-white/50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all font-bold text-blue-950 placeholder:text-blue-900/50"
                                 onChange={(e) => setFormData({...formData, phone: e.target.value})} 
                             />
