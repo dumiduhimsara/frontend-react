@@ -27,7 +27,7 @@ const handleRegister = async (e) => {
         const apiUrl = import.meta.env.VITE_API_URL;
         const res = await axios.post(`${apiUrl}/register-shop`, formData);
         
-        alert("නියමයි! ලියාපදිංචිය සාර්ථකයි. 🎉");
+        alert("ලියාපදිංචිය සාර්ථකයි.");
         navigate('/'); 
     } catch (err) {
         alert(err.response?.data?.message || "ලියාපදිංචිය අසාර්ථකයි.");

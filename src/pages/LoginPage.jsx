@@ -1,26 +1,45 @@
 import React, { useState } from 'react';
 import { Phone, Lock, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom'; // පිටු අතර මාරු වෙන්න
-import bgImage from '../assets/bg.webp'; // අගට .webp කියලා දාන්න
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // ✅ අලුතින් එක් කළා
+import bgImage from '../assets/bg.webp';
 
 const LoginPage = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate(); // Navigation function එක
+  const navigate = useNavigate();
+
+  // ✅ Login Logic එක මෙතනින් ආරම්භ වේ
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL;
+      const res = await axios.post(`${apiUrl}/login-shop`, { phone, password });
+
+      if (res.status === 200) {
+        // මුදලාලිගේ විස්තර Browser එකේ මතක තියාගමු
+        localStorage.setItem("merchantName", res.data.merchant.ownerName);
+        localStorage.setItem("shopName", res.data.merchant.shopName);
+        
+        alert("සාදරයෙන් පිළිගනිමු! ✅");
+        navigate('/dashboard'); 
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Login අසාර්ථකයි. නැවත උත්සාහ කරන්න.");
+    }
+  };
 
   return (
     <div 
       className="min-h-screen flex flex-col justify-center px-6 bg-cover bg-center bg-no-repeat relative overflow-hidden"
       style={{ 
         backgroundImage: `url(${bgImage})`,
-        backgroundAttachment: 'fixed' // ෆෝන් එකේ scroll කරද්දී පින්තූරය නොසෙල්වී තියෙන්න
+        backgroundAttachment: 'fixed'
       }}
     >
-      {/* 1. Background Overlay: Blur එක මුළු පින්තූරයටම දාන්නේ නැතුව මෙතනින් ඉවත් කළා */}
       <div className="absolute inset-0 bg-blue-900/10"></div>
 
       <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
-        {/* 2. Card: bg-white/40 දාලා විනිවිද පෙනෙන ගතිය වැඩි කළා, එතකොට පින්තූරය හොඳට පේනවා */}
         <div className="bg-white/40 backdrop-blur-md py-10 px-8 shadow-2xl rounded-[40px] border border-white/30 ring-1 ring-black/5">
           
           <div className="text-center mb-8">
@@ -30,7 +49,8 @@ const LoginPage = () => {
             <p className="text-blue-900/80 font-bold text-sm">නැවත සාදරයෙන් පිළිගනිමු!</p>
           </div>
 
-          <form className="space-y-5">
+          {/* ✅ onSubmit එකට handleLogin සම්බන්ධ කළා */}
+          <form className="space-y-5" onSubmit={handleLogin}>
             <div>
               <div className="relative group">
                 <Phone className="absolute left-4 top-4 h-5 w-5 text-blue-700 transition-colors group-focus-within:text-blue-900" />
@@ -40,6 +60,7 @@ const LoginPage = () => {
                   className="w-full pl-12 pr-4 py-4 bg-white/40 border border-white/40 rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none transition-all placeholder:text-blue-800/50 text-blue-950 font-semibold"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  required
                 />
               </div>
             </div>
@@ -53,6 +74,7 @@ const LoginPage = () => {
                   className="w-full pl-12 pr-4 py-4 bg-white/40 border border-white/40 rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none transition-all placeholder:text-blue-800/50 text-blue-950 font-semibold"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
               </div>
             </div>
@@ -83,4 +105,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;   
+export default LoginPage;
