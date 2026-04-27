@@ -1,13 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage'; 
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* ප්‍රධාන පිටුව විදිහට LoginPage එක පෙන්වනවා */}
-        <Route path="/" element={<LoginPage />} />
+ <Route path="/" element={<LoginPage />} />
+ <Route path="/register" element={<RegisterPage />} /> 
       </Routes>
     </Router>
   );
