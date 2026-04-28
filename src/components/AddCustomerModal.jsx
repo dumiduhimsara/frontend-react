@@ -12,6 +12,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
 
     const handleAddCustomer = async (e) => {
         e.preventDefault();
+        console.log("Button Clicked!");
         try {
             const merchantId = localStorage.getItem("merchantId");
             const apiUrl = import.meta.env.VITE_API_URL;
