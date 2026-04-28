@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, lankabel } from 'lucide-react'; // ණය මුදලට අයිකනයක් ඕන නම්
+import { X, Banknote } from 'lucide-react';
 import axios from 'axios';
 
 const AddCustomerModal = ({ isOpen, onClose }) => {
@@ -7,7 +7,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
         name: '',
         phone: '',
         address: '',
-        initialDebt: 0 // ✅ පරණ ණය මුදල මෙතනින් ගමු
+        initialDebt: 0 // 
     });
 
     const handleAddCustomer = async (e) => {
