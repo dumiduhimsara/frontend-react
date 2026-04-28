@@ -35,7 +35,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
             });
 
             if (res.status === 201) {
-                alert("පාරිභෝගිකයා සාර්ථකව dcdcඇතුළත් කළා! ✅");
+                alert("පාරිභෝගිකයා සාර්ථකව ඇතුළත් කළා! ✅");
                 setCustomerData({ name: '', phone: '', address: '', initialDebt: 0 });
                 onClose();
             }
