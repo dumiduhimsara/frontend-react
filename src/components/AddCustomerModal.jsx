@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, lankabel } from 'lucide-react'; // ණය මුදලට අයිකනයක් ඕන නම්
 import axios from 'axios';
 
 const AddCustomerModal = ({ isOpen, onClose }) => {
     const [customerData, setCustomerData] = useState({
         name: '',
         phone: '',
-        address: ''
+        address: '',
+        initialDebt: 0 // ✅ පරණ ණය මුදල මෙතනින් ගමු
     });
 
     const handleAddCustomer = async (e) => {
@@ -15,28 +16,40 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
             const merchantId = localStorage.getItem("merchantId");
             const apiUrl = import.meta.env.VITE_API_URL;
 
+            // ✅ Debugging: Console එකේ බලන්න ID එක එනවද කියලා
+            console.log("Merchant ID from storage:", merchantId);
+
+            if (!merchantId) {
+                alert("ඔබේ ගිණුමේ දෝෂයකි. කරුණාකර Logout වී නැවත Login වන්න.");
+                return;
+            }
+
             const res = await axios.post(`${apiUrl}/add-customer`, {
-                ...customerData,
-                merchantId
+                name: customerData.name,
+                phone: customerData.phone,
+                address: customerData.address,
+                debtAmount: customerData.initialDebt, // ✅ ණය මුදල Backend එකට යවනවා
+                merchantId: merchantId
             });
 
             if (res.status === 201) {
                 alert("පාරිභෝගිකයා සාර්ථකව ඇතුළත් කළා! ✅");
-                setCustomerData({ name: '', phone: '', address: '' });
-                onClose(); // Modal එක වහන්න Dashboard එකට පණිවිඩයක් යවනවා
+                setCustomerData({ name: '', phone: '', address: '', initialDebt: 0 });
+                onClose();
             }
         } catch (err) {
+            console.error("Error detailing:", err.response?.data);
             alert(err.response?.data?.message || "ඇතුළත් කිරීම අසාර්ථකයි.");
         }
     };
 
-    if (!isOpen) return null; // Modal එක Open නැත්නම් මුකුත් පෙන්වන්න එපා
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
             <div className="bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-2xl font-black text-slate-800 tracking-tight">අලුත් පාරිභෝගිකයෙක්</h3>
+                    <h3 className="text-2xl font-black text-slate-800 tracking-tight text-left">අලුත් පාරිභෝගිකයෙක්</h3>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                         <X size={24} className="text-slate-400" />
                     </button>
@@ -65,10 +78,22 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
                         />
                     </div>
 
+                    {/* ✅ ණය මුදල ඇතුළත් කිරීමට නව Input එක */}
+                    <div className="text-left">
+                        <label className="text-xs font-bold text-red-400 uppercase tracking-widest ml-1">පරණ ණය මුදල (ඇත්නම්)</label>
+                        <input 
+                            type="number" 
+                            placeholder="Rs. 0.00"
+                            className="w-full mt-1 px-5 py-4 bg-red-50 border border-red-100 rounded-2xl focus:ring-2 focus:ring-red-400 outline-none transition-all font-bold text-red-600"
+                            value={customerData.initialDebt}
+                            onChange={(e) => setCustomerData({...customerData, initialDebt: e.target.value})}
+                        />
+                    </div>
+
                     <div className="text-left">
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">ලිපිනය</label>
                         <textarea 
-                            className="w-full mt-1 px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none transition-all font-semibold min-h-[100px]"
+                            className="w-full mt-1 px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none transition-all font-semibold min-h-[80px]"
                             value={customerData.address}
                             onChange={(e) => setCustomerData({...customerData, address: e.target.value})}
                         />
