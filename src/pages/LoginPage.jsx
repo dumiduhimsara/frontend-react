@@ -17,7 +17,7 @@ const LoginPage = () => {
       const res = await axios.post(`${apiUrl}/login-shop`, { phone, password });
 
       if (res.status === 200) {
-        // මුදලාලිගේ විස්තර Browser එකේ මතක තියාගමු
+        localStorage.setItem("merchantId", res.data.merchant.id);
         localStorage.setItem("merchantName", res.data.merchant.ownerName);
         localStorage.setItem("shopName", res.data.merchant.shopName);
         
