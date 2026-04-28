@@ -7,8 +7,9 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
         name: '',
         phone: '',
         address: '',
-        initialDebt: 0 // 
+        initialDebt: 0 
     });
+
 
     const handleAddCustomer = async (e) => {
         e.preventDefault();
@@ -34,7 +35,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
             });
 
             if (res.status === 201) {
-                alert("පාරිභෝගිකයා සාර්ථකව ඇතුළත් කළා! ✅");
+                alert("පාරිභෝගිකයා සාර්ථකව dcdcඇතුළත් කළා! ✅");
                 setCustomerData({ name: '', phone: '', address: '', initialDebt: 0 });
                 onClose();
             }
