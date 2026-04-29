@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Banknote } from 'lucide-react';
+import { X, Banknote, MessageCircle, Smartphone, Printer } from 'lucide-react';
 import axios from 'axios';
 
 const AddCustomerModal = ({ isOpen, onClose }) => {
@@ -10,16 +10,32 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
         initialDebt: 0 
     });
 
+    // ✅ දැනුම් දීමේ ක්‍රමය තෝරාගැනීමට නව State එකක්
+    const [notifyMethod, setNotifyMethod] = useState('whatsapp');
+
+    // ✅ ලියාපදිංචි වූ පසු පණිවිඩය යැවීමේ Logic එක
+    const handleNotification = (customer) => {
+        const message = `ආයුබෝවන් ${customer.name}, ඔබ සාර්ථකව ${localStorage.getItem("shopName") || 'අපගේ වෙළඳසැල'} සමඟ ලියාපදිංචි විය. ඔබගේ දැනට පවතින ආරම්භක ණය මුදල Rs. ${Number(customerData.initialDebt).toFixed(2)} කි. ස්තූතියි!`;
+
+        if (notifyMethod === 'whatsapp') {
+            const url = `https://wa.me/94${customer.phone.substring(1)}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        } 
+        else if (notifyMethod === 'sms') {
+            const url = `sms:+94${customer.phone.substring(1)}?body=${encodeURIComponent(message)}`;
+            window.location.href = url;
+        } 
+        else if (notifyMethod === 'print') {
+            // දැනට Basic Print එකක්, පසුව ලස්සන Receipt එකක් හදමු
+            window.print();
+        }
+    };
 
     const handleAddCustomer = async (e) => {
         e.preventDefault();
-        console.log("Button Clicked!");
         try {
             const merchantId = localStorage.getItem("merchantId");
             const apiUrl = import.meta.env.VITE_API_URL;
-
-            // ✅ Debugging: Console එකේ බලන්න ID එක එනවද කියලා
-            console.log("Merchant ID from storage:", merchantId);
 
             if (!merchantId) {
                 alert("ඔබේ ගිණුමේ දෝෂයකි. කරුණාකර Logout වී නැවත Login වන්න.");
@@ -30,12 +46,16 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
                 name: customerData.name,
                 phone: customerData.phone,
                 address: customerData.address,
-                debtAmount: customerData.initialDebt, // ✅ ණය මුදල Backend එකට යවනවා
+                debtAmount: customerData.initialDebt,
                 merchantId: merchantId
             });
 
             if (res.status === 201) {
                 alert("පාරිභෝගිකයා සාර්ථකව ඇතුළත් කළා! ✅");
+                
+                // ✅ Notification එක යැවීම
+                handleNotification({ name: customerData.name, phone: customerData.phone });
+
                 setCustomerData({ name: '', phone: '', address: '', initialDebt: 0 });
                 onClose();
             }
@@ -49,7 +69,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div className="bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl animate-in fade-in zoom-in duration-300 overflow-y-auto max-h-[90vh]">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-black text-slate-800 tracking-tight text-left">අලුත් පාරිභෝගිකයෙක්</h3>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
@@ -80,7 +100,6 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
                         />
                     </div>
 
-                    {/* ✅ ණය මුදල ඇතුළත් කිරීමට නව Input එක */}
                     <div className="text-left">
                         <label className="text-xs font-bold text-red-400 uppercase tracking-widest ml-1">පරණ ණය මුදල (ඇත්නම්)</label>
                         <input 
@@ -90,6 +109,37 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
                             value={customerData.initialDebt}
                             onChange={(e) => setCustomerData({...customerData, initialDebt: e.target.value})}
                         />
+                    </div>
+
+                    {/* ✅ දැනුම් දීමේ ක්‍රමය තෝරාගැනීමට කොටස */}
+                    <div className="text-left">
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">ලියාපදිංචි පණිවිඩය යවන ක්‍රමය</label>
+                        <div className="grid grid-cols-3 gap-2 mt-2">
+                            <button
+                                type="button"
+                                onClick={() => setNotifyMethod('whatsapp')}
+                                className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${notifyMethod === 'whatsapp' ? 'border-emerald-500 bg-emerald-50 text-emerald-600' : 'border-slate-100 bg-slate-50 text-slate-400'}`}
+                            >
+                                <MessageCircle size={20} />
+                                <span className="text-[10px] font-bold mt-1">WhatsApp</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setNotifyMethod('sms')}
+                                className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${notifyMethod === 'sms' ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-100 bg-slate-50 text-slate-400'}`}
+                            >
+                                <Smartphone size={20} />
+                                <span className="text-[10px] font-bold mt-1">SMS</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setNotifyMethod('print')}
+                                className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${notifyMethod === 'print' ? 'border-slate-800 bg-slate-800 text-white' : 'border-slate-100 bg-slate-50 text-slate-400'}`}
+                            >
+                                <Printer size={20} />
+                                <span className="text-[10px] font-bold mt-1">Print</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div className="text-left">
