@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Banknote, MessageCircle, Smartphone, Printer } from 'lucide-react';
 import axios from 'axios';
+import { jsPDF } from "jspdf";
 
 const AddCustomerModal = ({ isOpen, onClose }) => {
     const [customerData, setCustomerData] = useState({
@@ -13,9 +14,9 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
     // ✅ දැනුම් දීමේ ක්‍රමය තෝරාගැනීමට නව State එකක්
     const [notifyMethod, setNotifyMethod] = useState('whatsapp');
 
-    // ✅ ලියාපදිංචි වූ පසු පණිවිඩය යැවීමේ Logic එක
     const handleNotification = (customer) => {
-        const message = `ආයුබෝවන් ${customer.name}, ඔබ සාර්ථකව ${localStorage.getItem("shopName") || 'අපගේ වෙළඳසැල'} සමඟ ලියාපදිංචි විය. ඔබගේ දැනට පවතින ආරම්භක ණය මුදල Rs. ${Number(customerData.initialDebt).toFixed(2)} කි. ස්තූතියි!`;
+        const shopName = localStorage.getItem("shopName") || 'අපගේ වෙළඳසැල';
+        const message = `ආයුබෝවන් ${customer.name}, ඔබ සාර්ථකව ${shopName} සමඟ ලියාපදිංචි විය. ඔබගේ දැනට පවතින ආරම්භක ණය මුදල Rs. ${Number(customerData.initialDebt).toFixed(2)} කි. ස්තූතියි!`;
 
         if (notifyMethod === 'whatsapp') {
             const url = `https://wa.me/94${customer.phone.substring(1)}?text=${encodeURIComponent(message)}`;
@@ -26,8 +27,34 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
             window.location.href = url;
         } 
         else if (notifyMethod === 'print') {
-            // දැනට Basic Print එකක්, පසුව ලස්සන Receipt එකක් හදමු
-            window.print();
+            // ✅ ලස්සන PDF බිල් එකක් සෑදීම
+            const doc = new jsPDF({
+                unit: "mm",
+                format: [80, 100] // බිල් ප්‍රින්ටර් වලට ගැලපෙන සයිස් එක
+            });
+
+            // බිල් එකේ පෙනුම සකස් කිරීම
+            doc.setFontSize(14);
+            doc.text(shopName, 40, 10, { align: "center" });
+            
+            doc.setFontSize(10);
+            doc.text("------------------------------------------", 40, 15, { align: "center" });
+            doc.text("පාරිභෝගික ලියාපදිංචි රසීදුව", 40, 22, { align: "center" });
+            doc.text("------------------------------------------", 40, 28, { align: "center" });
+
+            doc.setFontSize(10);
+            doc.text(`නම: ${customer.name}`, 10, 40);
+            doc.text(`දුරකථනය: ${customer.phone}`, 10, 48);
+            doc.text(`ආරම්භක ණය: Rs. ${Number(customerData.initialDebt).toFixed(2)}`, 10, 56);
+            
+            doc.text("------------------------------------------", 40, 70, { align: "center" });
+            doc.setFontSize(9);
+            doc.text("ස්තූතියි! නැවත එන්න.", 40, 78, { align: "center" });
+            doc.setFontSize(7);
+            doc.text(new Date().toLocaleString(), 40, 85, { align: "center" });
+
+            // බ්‍රවුසරයේ PDF එක පෙන්වීම වෙනුවට කෙලින්ම Download/Print වීම සිදුවේ
+            doc.save(`${customer.name}_Welcome_Bill.pdf`);
         }
     };
 
