@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'; 
 import AddCustomerModal from '../components/AddCustomerModal';
-import CustomerDetailsModal from '../components/CustomerDetailsModal'; // ✅ අලුත් Modal එක Import කළා
+import CustomerDetailsModal from '../components/CustomerDetailsModal'; 
 import { 
   LayoutDashboard, Users, Package, ShoppingCart, Settings, 
-  LogOut, TrendingUp, UserPlus, Menu, X, PlusCircle, MinusCircle, Phone
+  LogOut, TrendingUp, UserPlus, Menu, X, PlusCircle, MinusCircle, Phone, AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -12,18 +12,22 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [customers, setCustomers] = useState([]); // ✅ පාරිභෝගිකයින් සේව් කරන්න
-    const [selectedCustomer, setSelectedCustomer] = useState(null); // ✅ තෝරාගත් පාරිභෝගිකයා
+    const [customers, setCustomers] = useState([]); 
+    const [selectedCustomer, setSelectedCustomer] = useState(null); 
     const [updateAmount, setUpdateAmount] = useState('');
-    const [searchTerm, setSearchTerm] = useState(''); // ✅ Search කරන්න අවශ්‍ය state එක
-    const [history, setHistory] = useState([]); // ✅ ගනුදෙනු ඉතිහාසය සඳහා state එක
+    const [searchTerm, setSearchTerm] = useState(''); 
+    const [history, setHistory] = useState([]); 
 
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
     const merchantId = localStorage.getItem("merchantId");
     const apiUrl = import.meta.env.VITE_API_URL;
 
-    // ✅ පාරිභෝගිකයාගේ ගනුදෙනු ඉතිහාසය ලබාගන්නා Function එක
+    // --- ණය වැඩිම පාරිභෝගිකයින් 5 දෙනා තෝරා ගැනීම ---
+    const topDebtors = [...customers]
+        .sort((a, b) => b.debtAmount - a.debtAmount)
+        .slice(0, 5);
+
     const fetchHistory = async (customerId) => {
         try {
             const res = await axios.get(`${apiUrl}/get-history/${customerId}`);
@@ -33,15 +37,14 @@ const Dashboard = () => {
         }
     };
 
-    // --- පාරිභෝගිකයෙක් ඉවත් කිරීමේ Function එක ---
     const handleDeleteCustomer = async (id) => {
         if (window.confirm("ඔබට විශ්වාසද මෙම පාරිභෝගිකයා ඉවත් කළ යුතු බව?")) {
             try {
                 const res = await axios.delete(`${apiUrl}/delete-customer/${id}`);
                 if (res.status === 200) {
                     alert(res.data.message);
-                    setSelectedCustomer(null); // Popup එක වහනවා
-                    fetchCustomers(); // ලිස්ට් එක Refresh කරනවා
+                    setSelectedCustomer(null); 
+                    fetchCustomers(); 
                 }
             } catch (err) {
                 alert("ඉවත් කිරීම අසාර්ථකයි.");
@@ -49,13 +52,11 @@ const Dashboard = () => {
         }
     };
 
-    // --- Search ලොජික් එක (නම හෝ ෆෝන් නම්බර් එක අනුව) ---
     const filteredCustomers = customers.filter(customer => 
         customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
         customer.phone.includes(searchTerm)
     );
 
-    // --- 1. පාරිභෝගිකයින් ලබා ගැනීම ---
     const fetchCustomers = async () => {
         try {
             const res = await axios.get(`${apiUrl}/get-customers/${merchantId}`);
@@ -69,21 +70,20 @@ const Dashboard = () => {
         if (merchantId) fetchCustomers();
     }, [merchantId]);
 
-    // --- 2. ණය මුදල Update කිරීමේ Logic එක ---
     const handleUpdateDebt = async (id, type) => {
         if (!updateAmount || isNaN(updateAmount)) return alert("කරුණාකර නිවැරදි මුදලක් ඇතුළත් කරන්න.");
         
         try {
             const res = await axios.put(`${apiUrl}/update-debt/${id}`, {
                 amount: updateAmount,
-                type: type // 'add' හෝ 'settle'
+                type: type 
             });
 
             if (res.status === 200) {
                 alert(res.data.message);
                 setUpdateAmount('');
                 setSelectedCustomer(null);
-                fetchCustomers(); // ලිස්ට් එක Refresh කරනවා
+                fetchCustomers(); 
             }
         } catch (err) {
             alert("Error updating debt");
@@ -97,7 +97,6 @@ const Dashboard = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex overflow-hidden">
-            {/* Sidebar */}
             <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-blue-950 text-white transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:relative md:translate-x-0 md:flex`}>
                 <div className="p-6 flex justify-between items-center">
                     <div>
@@ -133,10 +132,46 @@ const Dashboard = () => {
                 </header>
 
                 <div className="p-4 md:p-8 pb-10">
+                    {/* ✅ Cards පිළිවෙළට සකස් කළා */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 text-left">
                         <StatCard icon={<Users className="text-blue-600" />} label="මුළු පාරිභෝගිකයින්" value={customers.length} trend="+0%" color="bg-blue-50" />
+                        
+                        {/* ✅ අලුත් ලියාපදිංචි වෙනුවට Top Debtor පෙන්වන Card එක */}
+                        <StatCard 
+                            icon={<AlertCircle className="text-red-600" />} 
+                            label="වැඩිම ණය ඇති පාරිභෝගිකයා" 
+                            value={topDebtors.length > 0 ? `Rs. ${topDebtors[0].debtAmount.toFixed(2)}` : "Rs. 0.00"} 
+                            trend={topDebtors.length > 0 ? topDebtors[0].name : "N/A"} 
+                            color="bg-red-50" 
+                        />
+
                         <StatCard icon={<TrendingUp className="text-emerald-600" />} label="අද විකුණුම්" value="Rs. 0.00" trend="+0%" color="bg-emerald-50" />
-                        <StatCard icon={<UserPlus className="text-purple-600" />} label="අලුත් ලියාපදිංචි" value="0" trend="New" color="bg-purple-50" />
+                    </div>
+
+                    {/* ✅ Top 5 Debtors List එක (Ss එකේ විදිහට) */}
+                    <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-8 text-left">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-red-50 text-red-600 rounded-xl"><TrendingUp size={20} /></div>
+                            <h3 className="text-xl font-black text-slate-800">වැඩිම ණය ඇති අය (Top 5)</h3>
+                        </div>
+                        <div className="space-y-4">
+                            {topDebtors.length === 0 ? (
+                                <p className="text-slate-400 font-bold text-sm">ණය ඇති පාරිභෝගිකයින් නැත.</p>
+                            ) : (
+                                topDebtors.map((debtor, index) => (
+                                    <div key={debtor._id} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-2xl transition-all">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold text-xs">{index + 1}</div>
+                                            <div>
+                                                <p className="font-bold text-slate-700 text-sm">{debtor.name}</p>
+                                                <p className="text-[10px] text-slate-400 font-medium">{debtor.phone}</p>
+                                            </div>
+                                        </div>
+                                        <p className="font-black text-red-600 text-sm">Rs. {debtor.debtAmount.toLocaleString()}</p>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex justify-between items-center mb-4">
@@ -177,7 +212,7 @@ const Dashboard = () => {
                                         <button 
                                             onClick={() => {
                                                 setSelectedCustomer(customer);
-                                                setUpdateAmount('0'); // ණය Update Mode එක On කරනවා
+                                                setUpdateAmount('0'); 
                                             }}
                                             className="py-3 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all active:scale-95"
                                         >ණය Update</button>
@@ -185,8 +220,8 @@ const Dashboard = () => {
                                         <button 
                                             onClick={() => {
                                                 setSelectedCustomer(customer);
-                                                setUpdateAmount(''); // විස්තර පෙන්වන Mode එක On කරනවා
-                                                fetchHistory(customer._id); // ✅ විස්තර බලන කොටම history එක fetch කරනවා
+                                                setUpdateAmount(''); 
+                                                fetchHistory(customer._id); 
                                             }}
                                             className="py-3 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all active:scale-95"
                                         >විස්තර බලන්න</button>
@@ -198,7 +233,6 @@ const Dashboard = () => {
                 </div>
             </main>
 
-            {/* --- 1. ණය Update කරන Popup එක --- */}
             {selectedCustomer && updateAmount !== '' && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl animate-in zoom-in duration-200">
@@ -229,11 +263,10 @@ const Dashboard = () => {
                 </div>
             )}
 
-            {/* ✅ අලුත් Customer Details Modal Component එක (මෙතන පරණ Modal එක replace කළා) */}
             <CustomerDetailsModal 
                 isOpen={selectedCustomer && updateAmount === ''} 
                 customer={selectedCustomer} 
-                history={history} // ✅ history එක pass කළා
+                history={history} 
                 onClose={() => setSelectedCustomer(null)} 
                 onDelete={handleDeleteCustomer} 
             />
