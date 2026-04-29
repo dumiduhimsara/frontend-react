@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Banknote, MessageCircle, Smartphone, Printer } from 'lucide-react';
+import { X, MessageCircle, Smartphone, Printer } from 'lucide-react';
 import axios from 'axios';
 import { jsPDF } from "jspdf";
 
@@ -11,76 +11,66 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
         initialDebt: 0 
     });
 
-    // ✅ දැනුම් දීමේ ක්‍රමය තෝරාගැනීමට නව State එකක්
-const handleNotification = (customer, notifyMethod) => {
-    const shopName = localStorage.getItem("shopName") || 'අපගේ වෙළඳසැල';
-    const message = `ආයුබෝවන් ${customer.name}, ඔබ සාර්ථකව ${shopName} සමඟ ලියාපදිංචි විය. ඔබගේ දැනට පවතින ආරම්භක ණය මුදල Rs. ${Number(customerData.initialDebt).toFixed(2)} කි. ස්තූතියි!`;
+    // ✅ 1. notifyMethod එක මෙතන අනිවාර්යයෙන්ම තියෙන්න ඕනේ (කලින් කෝඩ් එකේ මේක අඩුවෙලා තිබුණා)
+    const [notifyMethod, setNotifyMethod] = useState('whatsapp');
 
-    if (notifyMethod === 'whatsapp') {
-        const url = `https://wa.me/94${customer.phone.substring(1)}?text=${encodeURIComponent(message)}`;
-        window.open(url, '_blank');
-    } 
-    else if (notifyMethod === 'sms') {
-        const url = `sms:+94${customer.phone.substring(1)}?body=${encodeURIComponent(message)}`;
-        window.location.href = url;
-    } 
-    else if (notifyMethod === 'print') {
-        // ✅ 1. සිංහල අකුරු හරියට පෙන්වීමට Canvas එකක් භාවිතා කරමු
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = 400;
-        canvas.height = 550;
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "black";
-        
-        // Header
-        ctx.textAlign = "center";
-        ctx.font = "bold 28px Arial";
-        ctx.fillText(shopName, 200, 50);
-        
-        ctx.font = "20px Arial";
-        ctx.fillText("------------------------------------------", 200, 80);
-        ctx.fillText("පාරිභෝගික ලියාපදිංචි රසීදුව", 200, 110);
-        ctx.fillText("------------------------------------------", 200, 140);
-        
-        // Body
-        ctx.textAlign = "left";
-        ctx.font = "22px Arial";
-        ctx.fillText(`නම: ${customer.name}`, 40, 190);
-        ctx.fillText(`දුරකථනය: ${customer.phone}`, 40, 230);
-        ctx.fillText(`ණය මුදල: Rs. ${Number(customerData.initialDebt).toFixed(2)}`, 40, 270);
-        
-        // Footer
-        ctx.textAlign = "center";
-        ctx.fillText("------------------------------------------", 200, 350);
-        ctx.font = "20px Arial";
-        ctx.fillText("ස්තූතියි! නැවත එන්න.", 200, 390);
-        ctx.font = "16px Arial";
-        ctx.fillText(new Date().toLocaleString(), 200, 430);
+    // ✅ 2. handleNotification function එක
+    const handleNotification = (customer, selectedMethod) => {
+        const shopName = localStorage.getItem("shopName") || 'අපගේ වෙළඳසැල';
+        const message = `ආයුබෝවන් ${customer.name}, ඔබ සාර්ථකව ${shopName} සමඟ ලියාපදිංචි විය. ඔබගේ දැනට පවතින ආරම්භක ණය මුදල Rs. ${Number(customerData.initialDebt).toFixed(2)} කි. ස්තූතියි!`;
 
-        // ✅ 2. Canvas එක Image එකක් කර PDF එකට දැමීම
-        const imgData = canvas.toDataURL("image/png");
-        const doc = new jsPDF({
-            unit: "mm",
-            format: [80, 110]
-        });
-        doc.addImage(imgData, 'PNG', 0, 0, 80, 110);
+        if (selectedMethod === 'whatsapp') {
+            const url = `https://wa.me/94${customer.phone.substring(1)}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        } 
+        else if (selectedMethod === 'sms') {
+            const url = `sms:+94${customer.phone.substring(1)}?body=${encodeURIComponent(message)}`;
+            window.location.href = url;
+        } 
+        else if (selectedMethod === 'print') {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = 400;
+            canvas.height = 550;
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "black";
+            
+            ctx.textAlign = "center";
+            ctx.font = "bold 28px Arial";
+            ctx.fillText(shopName, 200, 50);
+            
+            ctx.font = "20px Arial";
+            ctx.fillText("------------------------------------------", 200, 80);
+            ctx.fillText("පාරිභෝගික ලියාපදිංචි රසීදුව", 200, 110);
+            ctx.fillText("------------------------------------------", 200, 140);
+            
+            ctx.textAlign = "left";
+            ctx.font = "22px Arial";
+            ctx.fillText(`නම: ${customer.name}`, 40, 190);
+            ctx.fillText(`දුරකථනය: ${customer.phone}`, 40, 230);
+            ctx.fillText(`ණය මුදල: Rs. ${Number(customerData.initialDebt).toFixed(2)}`, 40, 270);
+            
+            ctx.textAlign = "center";
+            ctx.fillText("------------------------------------------", 200, 350);
+            ctx.font = "20px Arial";
+            ctx.fillText("ස්තූතියි! නැවත එන්න.", 200, 390);
+            ctx.font = "16px Arial";
+            ctx.fillText(new Date().toLocaleString(), 200, 430);
 
-        // ✅ 3. කෙලින්ම Print Window එක Open කිරීම
-        // doc.output එකෙන් blob url එකක් හදාගෙන ඒක නව window එකක open කරනවා
-        const blob = doc.output("blob");
-        const url = URL.createObjectURL(blob);
-        const printWindow = window.open(url, "_blank");
-        
-        // Window එක load වුණු ගමන් print dialogue එක එනවා
-        if (printWindow) {
-            printWindow.onload = () => {
-                printWindow.print();
-            };
+            const imgData = canvas.toDataURL("image/png");
+            const doc = new jsPDF({
+                unit: "mm",
+                format: [80, 110]
+            });
+            doc.addImage(imgData, 'PNG', 0, 0, 80, 110);
+
+            const blob = doc.output("blob");
+            const url = URL.createObjectURL(blob);
+            window.open(url, "_blank"); 
         }
-    }
-};
+    };
+
     const handleAddCustomer = async (e) => {
         e.preventDefault();
         try {
@@ -103,8 +93,8 @@ const handleNotification = (customer, notifyMethod) => {
             if (res.status === 201) {
                 alert("පාරිභෝගිකයා සාර්ථකව ඇතුළත් කළා! ✅");
                 
-                // ✅ Notification එක යැවීම
-                handleNotification({ name: customerData.name, phone: customerData.phone });
+                // ✅ 3. මෙතන notifyMethod එක හරියට පාස් කරනවා
+                handleNotification({ name: customerData.name, phone: customerData.phone }, notifyMethod);
 
                 setCustomerData({ name: '', phone: '', address: '', initialDebt: 0 });
                 onClose();
@@ -119,7 +109,7 @@ const handleNotification = (customer, notifyMethod) => {
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl animate-in fade-in zoom-in duration-300 overflow-y-auto max-h-[90vh]">
+            <div className="bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-black text-slate-800 tracking-tight text-left">අලුත් පාරිභෝගිකයෙක්</h3>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
@@ -161,7 +151,6 @@ const handleNotification = (customer, notifyMethod) => {
                         />
                     </div>
 
-                    {/* ✅ දැනුම් දීමේ ක්‍රමය තෝරාගැනීමට කොටස */}
                     <div className="text-left">
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">ලියාපදිංචි පණිවිඩය යවන ක්‍රමය</label>
                         <div className="grid grid-cols-3 gap-2 mt-2">
@@ -203,7 +192,7 @@ const handleNotification = (customer, notifyMethod) => {
 
                     <button 
                         type="submit"
-                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 mt-4"
+                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg mt-4 transition-all active:scale-95"
                     >
                         දත්ත සුරකින්න
                     </button>
