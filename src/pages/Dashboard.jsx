@@ -11,29 +11,15 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [customers, setCustomers] = useState([]); 
-    const [selectedCustomer, setSelectedCustomer] = useState(null); 
+    const [customers, setCustomers] = useState([]); // ✅ පාරිභෝගිකයින් සේව් කරන්න
+    const [selectedCustomer, setSelectedCustomer] = useState(null); // ✅ තෝරාගත් පාරිභෝගිකයා
     const [updateAmount, setUpdateAmount] = useState('');
-    const [searchTerm, setSearchTerm] = useState(''); 
+    const [searchTerm, setSearchTerm] = useState(''); // ✅ Search කරන්න අවශ්‍ය state එක
 
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
     const merchantId = localStorage.getItem("merchantId");
     const apiUrl = import.meta.env.VITE_API_URL;
-
-    // --- 1. පාරිභෝගිකයින් ලබා ගැනීම ---
-    const fetchCustomers = async () => {
-        try {
-            const res = await axios.get(`${apiUrl}/get-customers/${merchantId}`);
-            setCustomers(res.data);
-        } catch (err) {
-            console.error("Error fetching customers:", err);
-        }
-    };
-
-    useEffect(() => {
-        if (merchantId) fetchCustomers();
-    }, [merchantId]);
 
     // --- පාරිභෝගිකයෙක් ඉවත් කිරීමේ Function එක ---
     const handleDeleteCustomer = async (id) => {
@@ -51,27 +37,41 @@ const Dashboard = () => {
         }
     };
 
-    // --- Search ලොජික් එක ---
+    // --- Search ලොජික් එක (නම හෝ ෆෝන් නම්බර් එක අනුව) ---
     const filteredCustomers = customers.filter(customer => 
         customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
         customer.phone.includes(searchTerm)
     );
 
-    // --- ණය මුදල Update කිරීමේ Logic එක ---
+    // --- 1. පාරිභෝගිකයින් ලබා ගැනීම ---
+    const fetchCustomers = async () => {
+        try {
+            const res = await axios.get(`${apiUrl}/get-customers/${merchantId}`);
+            setCustomers(res.data);
+        } catch (err) {
+            console.error("Error fetching customers:", err);
+        }
+    };
+
+    useEffect(() => {
+        if (merchantId) fetchCustomers();
+    }, [merchantId]);
+
+    // --- 2. ණය මුදල Update කිරීමේ Logic එක ---
     const handleUpdateDebt = async (id, type) => {
         if (!updateAmount || isNaN(updateAmount)) return alert("කරුණාකර නිවැරදි මුදලක් ඇතුළත් කරන්න.");
         
         try {
             const res = await axios.put(`${apiUrl}/update-debt/${id}`, {
                 amount: updateAmount,
-                type: type 
+                type: type // 'add' හෝ 'settle'
             });
 
             if (res.status === 200) {
                 alert(res.data.message);
                 setUpdateAmount('');
                 setSelectedCustomer(null);
-                fetchCustomers(); 
+                fetchCustomers(); // ලිස්ට් එක Refresh කරනවා
             }
         } catch (err) {
             alert("Error updating debt");
@@ -109,7 +109,6 @@ const Dashboard = () => {
             {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>}
 
             <main className="flex-1 flex flex-col h-screen overflow-y-auto">
-                {/* Header */}
                 <header className="bg-white border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
                     <div className="flex items-center gap-4">
                         <button className="md:hidden p-2 bg-slate-100 rounded-xl text-slate-600" onClick={() => setIsSidebarOpen(true)}><Menu size={24} /></button>
@@ -122,7 +121,6 @@ const Dashboard = () => {
                 </header>
 
                 <div className="p-4 md:p-8 pb-10">
-                    {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 text-left">
                         <StatCard icon={<Users className="text-blue-600" />} label="මුළු පාරිභෝගිකයින්" value={customers.length} trend="+0%" color="bg-blue-50" />
                         <StatCard icon={<TrendingUp className="text-emerald-600" />} label="අද විකුණුම්" value="Rs. 0.00" trend="+0%" color="bg-emerald-50" />
@@ -152,7 +150,7 @@ const Dashboard = () => {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {filteredCustomers.map((customer) => (
-                                <div key={customer._id} className="relative bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all text-left">
+                                <div key={customer._id} className="relative bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all text-left group">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="h-12 w-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-600 font-bold text-lg">{customer.name[0]}</div>
                                         <div className="text-right">
@@ -169,7 +167,7 @@ const Dashboard = () => {
                                                 setSelectedCustomer(customer);
                                                 setUpdateAmount('0'); // ණය Update Mode එක On කරනවා
                                             }}
-                                            className="py-3 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all"
+                                            className="py-3 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all active:scale-95"
                                         >ණය Update</button>
                                         
                                         <button 
@@ -177,7 +175,7 @@ const Dashboard = () => {
                                                 setSelectedCustomer(customer);
                                                 setUpdateAmount(''); // විස්තර පෙන්වන Mode එක On කරනවා
                                             }}
-                                            className="py-3 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all"
+                                            className="py-3 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all active:scale-95"
                                         >විස්තර බලන්න</button>
                                     </div>
                                 </div>
@@ -187,7 +185,7 @@ const Dashboard = () => {
                 </div>
             </main>
 
-            {/* --- 1. ණය Update කරන Popup එක (ණය මුදලක් ඇති විට පෙන්වයි) --- */}
+            {/* --- 1. ණය Update කරන Popup එක --- */}
             {selectedCustomer && updateAmount !== '' && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl animate-in zoom-in duration-200">
@@ -218,7 +216,7 @@ const Dashboard = () => {
                 </div>
             )}
 
-            {/* --- 2. විස්තර බලන සහ ඉවත් කරන Popup එක (ණය මුදලක් නැති විට පෙන්වයි) --- */}
+            {/* --- 2. විස්තර බලන සහ ඉවත් කරන Popup එක --- */}
             {selectedCustomer && updateAmount === '' && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl animate-in zoom-in duration-200">
@@ -229,15 +227,15 @@ const Dashboard = () => {
 
                         <div className="space-y-4 text-left">
                             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">නම</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">නම</p>
                                 <p className="text-lg font-black text-slate-800">{selectedCustomer.name}</p>
                             </div>
                             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">දුරකථනය</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">දුරකථනය</p>
                                 <p className="text-lg font-black text-slate-800">{selectedCustomer.phone}</p>
                             </div>
-                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">දැනට ණය මුදල</p>
+                            <div className="bg-red-50 p-4 rounded-2xl border border-red-100">
+                                <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">දැනට ණය මුදල</p>
                                 <p className="text-xl font-black text-red-600">Rs. {selectedCustomer.debtAmount.toFixed(2)}</p>
                             </div>
                         </div>
@@ -269,7 +267,7 @@ const NavItem = ({ icon, label, active = false }) => (
 );
 
 const StatCard = ({ icon, label, value, trend, color }) => (
-    <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm">
+    <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm transition-transform hover:scale-[1.02]">
         <div className="flex justify-between items-start mb-4">
             <div className={`p-3 rounded-2xl ${color}`}>{icon}</div>
             <span className="text-[10px] font-black px-2 py-1 bg-slate-100 rounded-lg text-slate-600 uppercase tracking-wider">{trend}</span>
