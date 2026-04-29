@@ -12,7 +12,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
     });
 
     // ✅ දැනුම් දීමේ ක්‍රමය තෝරාගැනීමට නව State එකක්
-  const handleNotification = (customer) => {
+const handleNotification = (customer, notifyMethod) => {
     const shopName = localStorage.getItem("shopName") || 'අපගේ වෙළඳසැල';
     const message = `ආයුබෝවන් ${customer.name}, ඔබ සාර්ථකව ${shopName} සමඟ ලියාපදිංචි විය. ඔබගේ දැනට පවතින ආරම්භක ණය මුදල Rs. ${Number(customerData.initialDebt).toFixed(2)} කි. ස්තූතියි!`;
 
