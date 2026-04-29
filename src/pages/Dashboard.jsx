@@ -17,6 +17,7 @@ const Dashboard = () => {
     const [updateAmount, setUpdateAmount] = useState('');
     const [searchTerm, setSearchTerm] = useState(''); 
     const [history, setHistory] = useState([]); 
+    const [dueDate, setDueDate] = useState(''); 
 
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
@@ -76,12 +77,14 @@ const Dashboard = () => {
         try {
             const res = await axios.put(`${apiUrl}/update-debt/${id}`, {
                 amount: updateAmount,
-                type: type 
+                type: type,
+                dueDate: dueDate
             });
 
             if (res.status === 200) {
                 alert(res.data.message);
                 setUpdateAmount('');
+                setDueDate('');
                 setSelectedCustomer(null);
                 fetchCustomers(); 
             }
@@ -251,6 +254,15 @@ const Dashboard = () => {
                             value={updateAmount === '0' ? '' : updateAmount}
                             onChange={(e) => setUpdateAmount(e.target.value)}
                         />
+                        <div className="mb-6 text-left">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">ණය ගෙවීමට පොරොන්දු වූ දිනය</label>
+                <input 
+                    type="date" 
+                    className="w-full mt-1 px-5 py-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none font-bold text-sm"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                />
+            </div>
                         <div className="grid grid-cols-2 gap-3">
                             <button onClick={() => handleUpdateDebt(selectedCustomer._id, 'add')} className="flex items-center justify-center gap-2 py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-all active:scale-95 shadow-lg shadow-red-600/20">
                                 <PlusCircle size={18} /> ඇඩ් කරන්න
