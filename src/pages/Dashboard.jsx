@@ -154,14 +154,6 @@ const Dashboard = () => {
                             {filteredCustomers.map((customer) => (
                                    <div key={customer._id} className="relative bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all text-left group">
     
-    {/* Delete Button එක */}
-    <button 
-        onClick={() => handleDeleteCustomer(customer._id)}
-        className="absolute top-4 left-4 p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover:opacity-100"
-        title="ඉවත් කරන්න"
-    >
-        <X size={18} />
-    </button>
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="h-12 w-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-600 font-bold text-lg">{customer.name[0]}</div>
                                         <div className="text-right">
