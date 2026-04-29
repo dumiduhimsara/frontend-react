@@ -42,7 +42,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
             
             ctx.font = "20px Arial";
             ctx.fillText("------------------------------------------", 200, 80);
-            ctx.fillText("පාරිභෝගික ලියාපදිංචි රසීදුව", 200, 110);
+            ctx.fillText("පාරිභෝගික ලියාපදිංචිය සාර්ථකයි!", 200, 110);
             ctx.fillText("------------------------------------------", 200, 140);
             
             ctx.textAlign = "left";
@@ -55,9 +55,12 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
             ctx.fillText("------------------------------------------", 200, 350);
             ctx.font = "20px Arial";
             ctx.fillText("ස්තූතියි! නැවත එන්න.", 200, 390);
-            ctx.font = "16px Arial";
-            ctx.fillText(new Date().toLocaleString(), 200, 430);
+            ctx.font = "50px Arial"; 
+            ctx.fillText("😊", 200, 450); 
 
+            ctx.font = "16px Arial";
+            ctx.fillText(new Date().toLocaleString(), 200, 500);
+            
             const imgData = canvas.toDataURL("image/png");
             const doc = new jsPDF({
                 unit: "mm",
