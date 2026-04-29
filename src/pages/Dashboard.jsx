@@ -16,31 +16,31 @@ const Dashboard = () => {
     const [updateAmount, setUpdateAmount] = useState('');
     const [searchTerm, setSearchTerm] = useState(''); // ✅ Search කරන්න අවශ්‍ය state එක
 
-// --- පාරිභෝගිකයෙක් ඉවත් කිරීමේ Function එක ---
-const handleDeleteCustomer = async (id) => {
-    if (window.confirm("ඔබට විශ්වාසද මෙම පාරිභෝගිකයා ඉවත් කළ යුතු බව?")) {
-        try {
-            const res = await axios.delete(`${apiUrl}/delete-customer/${id}`);
-            if (res.status === 200) {
-                alert(res.data.message);
-                fetchCustomers(); // ලිස්ට් එක Refresh කරනවා
-            }
-        } catch (err) {
-            alert("ඉවත් කිරීම අසාර්ථකයි.");
-        }
-    }
-};
-
-// --- Search ලොජික් එක (නම හෝ ෆෝන් නම්බර් එක අනුව) ---
-const filteredCustomers = customers.filter(customer => 
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    customer.phone.includes(searchTerm)
-);
-
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
     const merchantId = localStorage.getItem("merchantId");
     const apiUrl = import.meta.env.VITE_API_URL;
+
+    // --- පාරිභෝගිකයෙක් ඉවත් කිරීමේ Function එක ---
+    const handleDeleteCustomer = async (id) => {
+        if (window.confirm("ඔබට විශ්වාසද මෙම පාරිභෝගිකයා ඉවත් කළ යුතු බව?")) {
+            try {
+                const res = await axios.delete(`${apiUrl}/delete-customer/${id}`);
+                if (res.status === 200) {
+                    alert(res.data.message);
+                    fetchCustomers(); // ලිස්ට් එක Refresh කරනවා
+                }
+            } catch (err) {
+                alert("ඉවත් කිරීම අසාර්ථකයි.");
+            }
+        }
+    };
+
+    // --- Search ලොජික් එක (නම හෝ ෆෝන් නම්බර් එක අනුව) ---
+    const filteredCustomers = customers.filter(customer => 
+        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        customer.phone.includes(searchTerm)
+    );
 
     // --- 1. පාරිභෝගිකයින් ලබා ගැනීම ---
     const fetchCustomers = async () => {
@@ -134,14 +134,14 @@ const filteredCustomers = customers.filter(customer =>
                         <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all"><PlusCircle size={18} /> අලුත් කෙනෙක්</button>
                     </div>
                     <div className="mb-6 text-left">
-    <input 
-        type="text" 
-        placeholder="නම හෝ දුරකථන අංකය මගින් සොයන්න..."
-        className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none font-medium shadow-sm transition-all"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-    />
-</div>
+                        <input 
+                            type="text" 
+                            placeholder="නම හෝ දුරකථන අංකය මගින් සොයන්න..."
+                            className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none font-medium shadow-sm transition-all"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
 
                     {customers.length === 0 ? (
                         <div className="bg-white rounded-[32px] p-12 border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
@@ -150,15 +150,18 @@ const filteredCustomers = customers.filter(customer =>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {customers.map((customer) => (
-                                <div key={customer._id} className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all text-left">
+                            {/* ✅ මෙතන filteredCustomers.map ලෙස වෙනස් කළා */}
+                            {filteredCustomers.map((customer) => (
+                                <div key={customer._id} className="relative bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all text-left">
+                                    {/* ✅ මෙන්න Delete Button එක ඇතුළත් කළා */}
                                     <button 
-                onClick={() => handleDeleteCustomer(customer._id)}
-                className="absolute top-4 right-4 p-2 text-slate-300 hover:text-red-500 transition-colors"
-                title="ඉවත් කරන්න"
-            >
-                <X size={18} />
-            </button>
+                                        onClick={() => handleDeleteCustomer(customer._id)}
+                                        className="absolute top-4 right-4 p-2 text-slate-300 hover:text-red-500 transition-colors"
+                                        title="ඉවත් කරන්න"
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                    
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="h-12 w-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-600 font-bold text-lg">{customer.name[0]}</div>
                                         <div className="text-right">
