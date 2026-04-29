@@ -12,52 +12,75 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
     });
 
     // ✅ දැනුම් දීමේ ක්‍රමය තෝරාගැනීමට නව State එකක්
-    const [notifyMethod, setNotifyMethod] = useState('whatsapp');
+  const handleNotification = (customer) => {
+    const shopName = localStorage.getItem("shopName") || 'අපගේ වෙළඳසැල';
+    const message = `ආයුබෝවන් ${customer.name}, ඔබ සාර්ථකව ${shopName} සමඟ ලියාපදිංචි විය. ඔබගේ දැනට පවතින ආරම්භක ණය මුදල Rs. ${Number(customerData.initialDebt).toFixed(2)} කි. ස්තූතියි!`;
 
-    const handleNotification = (customer) => {
-        const shopName = localStorage.getItem("shopName") || 'අපගේ වෙළඳසැල';
-        const message = `ආයුබෝවන් ${customer.name}, ඔබ සාර්ථකව ${shopName} සමඟ ලියාපදිංචි විය. ඔබගේ දැනට පවතින ආරම්භක ණය මුදල Rs. ${Number(customerData.initialDebt).toFixed(2)} කි. ස්තූතියි!`;
+    if (notifyMethod === 'whatsapp') {
+        const url = `https://wa.me/94${customer.phone.substring(1)}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+    } 
+    else if (notifyMethod === 'sms') {
+        const url = `sms:+94${customer.phone.substring(1)}?body=${encodeURIComponent(message)}`;
+        window.location.href = url;
+    } 
+    else if (notifyMethod === 'print') {
+        // ✅ 1. සිංහල අකුරු හරියට පෙන්වීමට Canvas එකක් භාවිතා කරමු
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 400;
+        canvas.height = 550;
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "black";
+        
+        // Header
+        ctx.textAlign = "center";
+        ctx.font = "bold 28px Arial";
+        ctx.fillText(shopName, 200, 50);
+        
+        ctx.font = "20px Arial";
+        ctx.fillText("------------------------------------------", 200, 80);
+        ctx.fillText("පාරිභෝගික ලියාපදිංචි රසීදුව", 200, 110);
+        ctx.fillText("------------------------------------------", 200, 140);
+        
+        // Body
+        ctx.textAlign = "left";
+        ctx.font = "22px Arial";
+        ctx.fillText(`නම: ${customer.name}`, 40, 190);
+        ctx.fillText(`දුරකථනය: ${customer.phone}`, 40, 230);
+        ctx.fillText(`ණය මුදල: Rs. ${Number(customerData.initialDebt).toFixed(2)}`, 40, 270);
+        
+        // Footer
+        ctx.textAlign = "center";
+        ctx.fillText("------------------------------------------", 200, 350);
+        ctx.font = "20px Arial";
+        ctx.fillText("ස්තූතියි! නැවත එන්න.", 200, 390);
+        ctx.font = "16px Arial";
+        ctx.fillText(new Date().toLocaleString(), 200, 430);
 
-        if (notifyMethod === 'whatsapp') {
-            const url = `https://wa.me/94${customer.phone.substring(1)}?text=${encodeURIComponent(message)}`;
-            window.open(url, '_blank');
-        } 
-        else if (notifyMethod === 'sms') {
-            const url = `sms:+94${customer.phone.substring(1)}?body=${encodeURIComponent(message)}`;
-            window.location.href = url;
-        } 
-        else if (notifyMethod === 'print') {
-            // ✅ ලස්සන PDF බිල් එකක් සෑදීම
-            const doc = new jsPDF({
-                unit: "mm",
-                format: [80, 100] // බිල් ප්‍රින්ටර් වලට ගැලපෙන සයිස් එක
-            });
+        // ✅ 2. Canvas එක Image එකක් කර PDF එකට දැමීම
+        const imgData = canvas.toDataURL("image/png");
+        const doc = new jsPDF({
+            unit: "mm",
+            format: [80, 110]
+        });
+        doc.addImage(imgData, 'PNG', 0, 0, 80, 110);
 
-            // බිල් එකේ පෙනුම සකස් කිරීම
-            doc.setFontSize(14);
-            doc.text(shopName, 40, 10, { align: "center" });
-            
-            doc.setFontSize(10);
-            doc.text("------------------------------------------", 40, 15, { align: "center" });
-            doc.text("පාරිභෝගික ලියාපදිංචි රසීදුව", 40, 22, { align: "center" });
-            doc.text("------------------------------------------", 40, 28, { align: "center" });
-
-            doc.setFontSize(10);
-            doc.text(`නම: ${customer.name}`, 10, 40);
-            doc.text(`දුරකථනය: ${customer.phone}`, 10, 48);
-            doc.text(`ආරම්භක ණය: Rs. ${Number(customerData.initialDebt).toFixed(2)}`, 10, 56);
-            
-            doc.text("------------------------------------------", 40, 70, { align: "center" });
-            doc.setFontSize(9);
-            doc.text("ස්තූතියි! නැවත එන්න.", 40, 78, { align: "center" });
-            doc.setFontSize(7);
-            doc.text(new Date().toLocaleString(), 40, 85, { align: "center" });
-
-            // බ්‍රවුසරයේ PDF එක පෙන්වීම වෙනුවට කෙලින්ම Download/Print වීම සිදුවේ
-            doc.save(`${customer.name}_Welcome_Bill.pdf`);
+        // ✅ 3. කෙලින්ම Print Window එක Open කිරීම
+        // doc.output එකෙන් blob url එකක් හදාගෙන ඒක නව window එකක open කරනවා
+        const blob = doc.output("blob");
+        const url = URL.createObjectURL(blob);
+        const printWindow = window.open(url, "_blank");
+        
+        // Window එක load වුණු ගමන් print dialogue එක එනවා
+        if (printWindow) {
+            printWindow.onload = () => {
+                printWindow.print();
+            };
         }
-    };
-
+    }
+};
     const handleAddCustomer = async (e) => {
         e.preventDefault();
         try {
