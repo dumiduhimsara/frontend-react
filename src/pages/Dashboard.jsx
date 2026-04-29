@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'; 
 import AddCustomerModal from '../components/AddCustomerModal';
+import CustomerDetailsModal from '../components/CustomerDetailsModal'; // ✅ අලුත් Modal එක Import කළා
 import { 
   LayoutDashboard, Users, Package, ShoppingCart, Settings, 
   LogOut, TrendingUp, UserPlus, Menu, X, PlusCircle, MinusCircle, Phone
@@ -15,11 +16,22 @@ const Dashboard = () => {
     const [selectedCustomer, setSelectedCustomer] = useState(null); // ✅ තෝරාගත් පාරිභෝගිකයා
     const [updateAmount, setUpdateAmount] = useState('');
     const [searchTerm, setSearchTerm] = useState(''); // ✅ Search කරන්න අවශ්‍ය state එක
+    const [history, setHistory] = useState([]); // ✅ ගනුදෙනු ඉතිහාසය සඳහා state එක
 
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
     const merchantId = localStorage.getItem("merchantId");
     const apiUrl = import.meta.env.VITE_API_URL;
+
+    // ✅ පාරිභෝගිකයාගේ ගනුදෙනු ඉතිහාසය ලබාගන්නා Function එක
+    const fetchHistory = async (customerId) => {
+        try {
+            const res = await axios.get(`${apiUrl}/get-history/${customerId}`);
+            setHistory(res.data);
+        } catch (err) {
+            console.error("Error fetching history:", err);
+        }
+    };
 
     // --- පාරිභෝගිකයෙක් ඉවත් කිරීමේ Function එක ---
     const handleDeleteCustomer = async (id) => {
@@ -174,6 +186,7 @@ const Dashboard = () => {
                                             onClick={() => {
                                                 setSelectedCustomer(customer);
                                                 setUpdateAmount(''); // විස්තර පෙන්වන Mode එක On කරනවා
+                                                fetchHistory(customer._id); // ✅ විස්තර බලන කොටම history එක fetch කරනවා
                                             }}
                                             className="py-3 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all active:scale-95"
                                         >විස්තර බලන්න</button>
@@ -216,41 +229,14 @@ const Dashboard = () => {
                 </div>
             )}
 
-            {/* --- 2. විස්තර බලන සහ ඉවත් කරන Popup එක --- */}
-            {selectedCustomer && updateAmount === '' && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl animate-in zoom-in duration-200">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-black text-slate-800">පාරිභෝගික විස්තර</h3>
-                            <button onClick={() => setSelectedCustomer(null)} className="p-2 bg-slate-100 rounded-full text-slate-400"><X size={20}/></button>
-                        </div>
-
-                        <div className="space-y-4 text-left">
-                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">නම</p>
-                                <p className="text-lg font-black text-slate-800">{selectedCustomer.name}</p>
-                            </div>
-                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">දුරකථනය</p>
-                                <p className="text-lg font-black text-slate-800">{selectedCustomer.phone}</p>
-                            </div>
-                            <div className="bg-red-50 p-4 rounded-2xl border border-red-100">
-                                <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">දැනට ණය මුදල</p>
-                                <p className="text-xl font-black text-red-600">Rs. {selectedCustomer.debtAmount.toFixed(2)}</p>
-                            </div>
-                        </div>
-
-                        <div className="mt-8 pt-6 border-t border-slate-100">
-                            <button 
-                                onClick={() => handleDeleteCustomer(selectedCustomer._id)}
-                                className="w-full py-4 bg-red-50 text-red-500 rounded-2xl font-bold hover:bg-red-500 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
-                            >
-                                <X size={18} /> පාරිභෝගිකයා ඉවත් කරන්න
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* ✅ අලුත් Customer Details Modal Component එක (මෙතන පරණ Modal එක replace කළා) */}
+            <CustomerDetailsModal 
+                isOpen={selectedCustomer && updateAmount === ''} 
+                customer={selectedCustomer} 
+                history={history} // ✅ history එක pass කළා
+                onClose={() => setSelectedCustomer(null)} 
+                onDelete={handleDeleteCustomer} 
+            />
 
             <AddCustomerModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); fetchCustomers(); }} />
         </div>
