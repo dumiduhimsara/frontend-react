@@ -11,36 +11,15 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [customers, setCustomers] = useState([]); // ✅ පාරිභෝගිකයින් සේව් කරන්න
-    const [selectedCustomer, setSelectedCustomer] = useState(null); // ✅ ණය වෙනස් කරන්න තෝරගත් කෙනා
+    const [customers, setCustomers] = useState([]); 
+    const [selectedCustomer, setSelectedCustomer] = useState(null); 
     const [updateAmount, setUpdateAmount] = useState('');
-    const [searchTerm, setSearchTerm] = useState(''); // ✅ Search කරන්න අවශ්‍ය state එක
+    const [searchTerm, setSearchTerm] = useState(''); 
 
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
     const merchantId = localStorage.getItem("merchantId");
     const apiUrl = import.meta.env.VITE_API_URL;
-
-    // --- පාරිභෝගිකයෙක් ඉවත් කිරීමේ Function එක ---
-    const handleDeleteCustomer = async (id) => {
-        if (window.confirm("ඔබට විශ්වාසද මෙම පාරිභෝගිකයා ඉවත් කළ යුතු බව?")) {
-            try {
-                const res = await axios.delete(`${apiUrl}/delete-customer/${id}`);
-                if (res.status === 200) {
-                    alert(res.data.message);
-                    fetchCustomers(); // ලිස්ට් එක Refresh කරනවා
-                }
-            } catch (err) {
-                alert("ඉවත් කිරීම අසාර්ථකයි.");
-            }
-        }
-    };
-
-    // --- Search ලොජික් එක (නම හෝ ෆෝන් නම්බර් එක අනුව) ---
-    const filteredCustomers = customers.filter(customer => 
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        customer.phone.includes(searchTerm)
-    );
 
     // --- 1. පාරිභෝගිකයින් ලබා ගැනීම ---
     const fetchCustomers = async () => {
@@ -56,21 +35,43 @@ const Dashboard = () => {
         if (merchantId) fetchCustomers();
     }, [merchantId]);
 
-    // --- 2. ණය මුදල Update කිරීමේ Logic එක ---
+    // --- පාරිභෝගිකයෙක් ඉවත් කිරීමේ Function එක ---
+    const handleDeleteCustomer = async (id) => {
+        if (window.confirm("ඔබට විශ්වාසද මෙම පාරිභෝගිකයා ඉවත් කළ යුතු බව?")) {
+            try {
+                const res = await axios.delete(`${apiUrl}/delete-customer/${id}`);
+                if (res.status === 200) {
+                    alert(res.data.message);
+                    setSelectedCustomer(null); // Popup එක වහනවා
+                    fetchCustomers(); // ලිස්ට් එක Refresh කරනවා
+                }
+            } catch (err) {
+                alert("ඉවත් කිරීම අසාර්ථකයි.");
+            }
+        }
+    };
+
+    // --- Search ලොජික් එක ---
+    const filteredCustomers = customers.filter(customer => 
+        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        customer.phone.includes(searchTerm)
+    );
+
+    // --- ණය මුදල Update කිරීමේ Logic එක ---
     const handleUpdateDebt = async (id, type) => {
         if (!updateAmount || isNaN(updateAmount)) return alert("කරුණාකර නිවැරදි මුදලක් ඇතුළත් කරන්න.");
         
         try {
             const res = await axios.put(`${apiUrl}/update-debt/${id}`, {
                 amount: updateAmount,
-                type: type // 'add' හෝ 'settle'
+                type: type 
             });
 
             if (res.status === 200) {
                 alert(res.data.message);
                 setUpdateAmount('');
                 setSelectedCustomer(null);
-                fetchCustomers(); // ලිස්ට් එක Refresh කරනවා
+                fetchCustomers(); 
             }
         } catch (err) {
             alert("Error updating debt");
@@ -84,7 +85,7 @@ const Dashboard = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex overflow-hidden">
-            {/* Sidebar (වෙනසක් නැත) */}
+            {/* Sidebar */}
             <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-blue-950 text-white transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:relative md:translate-x-0 md:flex`}>
                 <div className="p-6 flex justify-between items-center">
                     <div>
@@ -108,7 +109,7 @@ const Dashboard = () => {
             {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>}
 
             <main className="flex-1 flex flex-col h-screen overflow-y-auto">
-                {/* Header (වෙනසක් නැත) */}
+                {/* Header */}
                 <header className="bg-white border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
                     <div className="flex items-center gap-4">
                         <button className="md:hidden p-2 bg-slate-100 rounded-xl text-slate-600" onClick={() => setIsSidebarOpen(true)}><Menu size={24} /></button>
@@ -128,11 +129,11 @@ const Dashboard = () => {
                         <StatCard icon={<UserPlus className="text-purple-600" />} label="අලුත් ලියාපදිංචි" value="0" trend="New" color="bg-purple-50" />
                     </div>
 
-                    {/* --- පාරිභෝගික ලැයිස්තුව --- */}
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-black text-slate-800">පාරිභෝගික ලැයිස්තුව</h3>
                         <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all"><PlusCircle size={18} /> අලුත් කෙනෙක්</button>
                     </div>
+
                     <div className="mb-6 text-left">
                         <input 
                             type="text" 
@@ -143,17 +144,15 @@ const Dashboard = () => {
                         />
                     </div>
 
-                    {customers.length === 0 ? (
+                    {filteredCustomers.length === 0 ? (
                         <div className="bg-white rounded-[32px] p-12 border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
                             <Package size={48} className="text-slate-200 mb-4" />
-                            <h3 className="text-lg font-bold text-slate-400">පාරිභෝගිකයෝ කිසිවෙක් නැත</h3>
+                            <h3 className="text-lg font-bold text-slate-400">ගැලපෙන පාරිභෝගිකයෝ නැත</h3>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {/* ✅ මෙතන filteredCustomers.map ලෙස වෙනස් කළා */}
                             {filteredCustomers.map((customer) => (
-                                   <div key={customer._id} className="relative bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all text-left group">
-    
+                                <div key={customer._id} className="relative bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all text-left">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="h-12 w-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-600 font-bold text-lg">{customer.name[0]}</div>
                                         <div className="text-right">
@@ -166,10 +165,20 @@ const Dashboard = () => {
                                     
                                     <div className="grid grid-cols-2 gap-2">
                                         <button 
-                                            onClick={() => setSelectedCustomer(customer)}
+                                            onClick={() => {
+                                                setSelectedCustomer(customer);
+                                                setUpdateAmount('0'); // ණය Update Mode එක On කරනවා
+                                            }}
                                             className="py-3 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all"
                                         >ණය Update</button>
-                                        <button className="py-3 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all">විස්තර බලන්න</button>
+                                        
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedCustomer(customer);
+                                                setUpdateAmount(''); // විස්තර පෙන්වන Mode එක On කරනවා
+                                            }}
+                                            className="py-3 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all"
+                                        >විස්තර බලන්න</button>
                                     </div>
                                 </div>
                             ))}
@@ -178,8 +187,8 @@ const Dashboard = () => {
                 </div>
             </main>
 
-            {/* --- ණය Update කරන Popup එක --- */}
-            {selectedCustomer && (
+            {/* --- 1. ණය Update කරන Popup එක (ණය මුදලක් ඇති විට පෙන්වයි) --- */}
+            {selectedCustomer && updateAmount !== '' && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl animate-in zoom-in duration-200">
                         <div className="flex justify-between items-center mb-6">
@@ -194,21 +203,51 @@ const Dashboard = () => {
                             type="number" 
                             placeholder="මුදල (Rs.)"
                             className="w-full px-5 py-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none font-bold text-xl mb-6"
-                            value={updateAmount}
+                            value={updateAmount === '0' ? '' : updateAmount}
                             onChange={(e) => setUpdateAmount(e.target.value)}
                         />
                         <div className="grid grid-cols-2 gap-3">
-                            <button 
-                                onClick={() => handleUpdateDebt(selectedCustomer._id, 'add')}
-                                className="flex items-center justify-center gap-2 py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-all active:scale-95 shadow-lg shadow-red-600/20"
-                            >
-                                <PlusCircle size={18} /> ණය ඇඩ් කරන්න
+                            <button onClick={() => handleUpdateDebt(selectedCustomer._id, 'add')} className="flex items-center justify-center gap-2 py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-all active:scale-95 shadow-lg shadow-red-600/20">
+                                <PlusCircle size={18} /> ඇඩ් කරන්න
                             </button>
+                            <button onClick={() => handleUpdateDebt(selectedCustomer._id, 'settle')} className="flex items-center justify-center gap-2 py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-600/20">
+                                <MinusCircle size={18} /> පියවන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- 2. විස්තර බලන සහ ඉවත් කරන Popup එක (ණය මුදලක් නැති විට පෙන්වයි) --- */}
+            {selectedCustomer && updateAmount === '' && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl animate-in zoom-in duration-200">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-black text-slate-800">පාරිභෝගික විස්තර</h3>
+                            <button onClick={() => setSelectedCustomer(null)} className="p-2 bg-slate-100 rounded-full text-slate-400"><X size={20}/></button>
+                        </div>
+
+                        <div className="space-y-4 text-left">
+                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">නම</p>
+                                <p className="text-lg font-black text-slate-800">{selectedCustomer.name}</p>
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">දුරකථනය</p>
+                                <p className="text-lg font-black text-slate-800">{selectedCustomer.phone}</p>
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">දැනට ණය මුදල</p>
+                                <p className="text-xl font-black text-red-600">Rs. {selectedCustomer.debtAmount.toFixed(2)}</p>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 pt-6 border-t border-slate-100">
                             <button 
-                                onClick={() => handleUpdateDebt(selectedCustomer._id, 'settle')}
-                                className="flex items-center justify-center gap-2 py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-600/20"
+                                onClick={() => handleDeleteCustomer(selectedCustomer._id)}
+                                className="w-full py-4 bg-red-50 text-red-500 rounded-2xl font-bold hover:bg-red-500 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
                             >
-                                <MinusCircle size={18} /> ණය පියවන්න
+                                <X size={18} /> පාරිභෝගිකයා ඉවත් කරන්න
                             </button>
                         </div>
                     </div>
