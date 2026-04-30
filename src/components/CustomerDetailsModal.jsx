@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, Phone, Clock, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+// ✅ Calendar icon එක මෙතනට ඇඩ් කළා
+import { X, Phone, Clock, ArrowUpRight, ArrowDownLeft, Calendar } from 'lucide-react';
 
 const CustomerDetailsModal = ({ isOpen, customer, history, onClose, onDelete }) => {
     if (!isOpen || !customer) return null;
@@ -34,11 +35,23 @@ const CustomerDetailsModal = ({ isOpen, customer, history, onClose, onDelete }) 
                         </div>
                     </div>
 
+                    {/* ✅ ණය මුදල සහ ගෙවිය යුතු දිනය පෙන්වන Card එක */}
                     <div className="bg-red-50 p-4 rounded-2xl border border-red-100 flex justify-between items-center">
                         <div>
                             <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">දැනට මුළු ණය</p>
                             <p className="text-2xl font-black text-red-600">Rs. {customer.debtAmount.toFixed(2)}</p>
                         </div>
+
+                        {/* ✅ ණය ගෙවන දිනයක් තිබේ නම් පමණක් මෙතන පෙන්වයි */}
+                        {customer.dueDate && (
+                            <div className="text-right">
+                                <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">ගෙවිය යුතු දිනය</p>
+                                <p className="text-xs font-black text-red-600 flex items-center justify-end gap-1">
+                                    <Calendar size={12} />
+                                    {new Date(customer.dueDate).toLocaleDateString('en-GB')}
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* ✅ ගනුදෙනු ඉතිහාසය (Transaction History) */}
