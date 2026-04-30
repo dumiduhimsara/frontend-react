@@ -45,7 +45,7 @@ const CustomerDetailsModal = ({ isOpen, customer, history, onClose, onDelete }) 
                         {/* ✅ ණය ගෙවන දිනයක් තිබේ නම් පමණක් මෙතන පෙන්වයි */}
                         {customer.dueDate && (
                             <div className="text-right">
-                                <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">ගෙවිය යුතු දිනය</p>
+                                <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">මීළඟ ගෙවීම</p>
                                 <p className="text-xs font-black text-red-600 flex items-center justify-end gap-1">
                                     <Calendar size={12} />
                                     {new Date(customer.dueDate).toLocaleDateString('en-GB')}
