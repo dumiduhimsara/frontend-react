@@ -3,7 +3,8 @@ import AddCustomerModal from '../components/AddCustomerModal';
 import CustomerDetailsModal from '../components/CustomerDetailsModal'; 
 import { 
   LayoutDashboard, Users, Package, ShoppingCart, Settings, 
-  LogOut, TrendingUp, UserPlus, Menu, X, PlusCircle, MinusCircle, Phone, AlertCircle
+  LogOut, TrendingUp, UserPlus, Menu, X, PlusCircle, MinusCircle, Phone, AlertCircle,
+  Bell, MessageCircle, PhoneOutgoing
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -29,6 +30,17 @@ const Dashboard = () => {
         .sort((a, b) => b.debtAmount - a.debtAmount)
         .slice(0, 5);
 
+    const upcomingReminders = customers.filter(customer => {
+    if (!customer.dueDate || customer.debtAmount <= 0) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dueDate = new Date(customer.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+    const diffTime = dueDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= 2;
+});    
+
     const fetchHistory = async (customerId) => {
         try {
             const res = await axios.get(`${apiUrl}/get-history/${customerId}`);
@@ -36,6 +48,20 @@ const Dashboard = () => {
         } catch (err) {
             console.error("Error fetching history:", err);
         }
+    };
+
+const sendWhatsApp = (c) => {
+        const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
+        const message = `ආයුබෝවන් ${c.name}, ${shopName} වෙත ඔබ ගෙවීමට ඇති රු. ${c.debtAmount.toFixed(2)} ක ණය මුදල ${dateStr} දිනට පෙර ගෙවන ලෙස කාරුණිකව මතක් කරමු. ස්තූතියි!`;
+        const url = `https://wa.me/94${c.phone.substring(1)}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+    };
+
+    // ✅ සාමාන්‍ය SMS පණිවිඩය යැවීමේ Function එක
+    const sendSMS = (c) => {
+        const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
+        const message = `Ayubowan ${c.name}, ${shopName} naya mudala Rs. ${c.debtAmount.toFixed(2)} labana ${dateStr} dinata pera gewana lesa mathak karamu. Sthuthiy!`;
+        window.location.href = `sms:+94${c.phone.substring(1)}?body=${encodeURIComponent(message)}`;
     };
 
     const handleDeleteCustomer = async (id) => {
@@ -149,6 +175,37 @@ const Dashboard = () => {
                         />
 
                         <StatCard icon={<TrendingUp className="text-emerald-600" />} label="අද විකුණුම්" value="Rs. 0.00" trend="+0%" color="bg-emerald-50" />
+                    </div>
+
+                    {/* ✅ අලුතෙන් ඇඩ් කළ ගෙවීම් මතක් කිරීම් (Reminders) කොටස */}
+                    <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-8 text-left">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-orange-50 text-orange-600 rounded-xl"><Bell size={20} /></div>
+                            <h3 className="text-xl font-black text-slate-800">ළඟදී ණය ගෙවිය යුතු අය (ඉදිරි දින 2)</h3>
+                        </div>
+                        <div className="space-y-4">
+                            {upcomingReminders.length === 0 ? (
+                                <p className="text-slate-400 font-bold text-sm ml-2">දැනට මතක් කිරීමට කිසිවෙකු නැත.</p>
+                            ) : (
+                                upcomingReminders.map((c) => {
+                                    const diffDays = Math.ceil((new Date(c.dueDate) - new Date()) / (1000 * 60 * 60 * 24));
+                                    return (
+                                        <div key={c._id} className="flex items-center justify-between p-4 bg-orange-50/30 rounded-2xl border border-orange-100 hover:bg-orange-50 transition-all">
+                                            <div>
+                                                <p className="font-bold text-slate-700 text-sm">{c.name}</p>
+                                                <p className="text-[10px] text-orange-600 font-black uppercase tracking-wider">
+                                                   {diffDays === 0 ? "අද දින ගෙවිය යුතුයි" : `තව දින ${diffDays} කින් ගෙවිය යුතුයි`}
+                                                </p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => sendWhatsApp(c)} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all active:scale-90" title="WhatsApp"><MessageCircle size={18} /></button>
+                                                <button onClick={() => sendSMS(c)} className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all active:scale-90" title="SMS"><PhoneOutgoing size={18} /></button>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
                     </div>
 
                     {/* ✅ Top 5 Debtors List එක (Ss එකේ විදිහට) */}
