@@ -424,11 +424,11 @@ const NavItem = ({ icon, label, active = false }) => (
     </div>
 );
 
-const StatCard = ({ icon, label, value, trend, color, bgColor }) => (
-    <div className={`${bgColor} p-6 rounded-[28px] border border-slate-100 shadow-sm transition-transform hover:scale-[1.02]`}>
+const StatCard = ({ icon, label, value, trend, color }) => (
+    <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm transition-transform hover:scale-[1.02]">
         <div className="flex justify-between items-start mb-4">
             <div className={`p-3 rounded-2xl ${color}`}>{icon}</div>
-            <span className="text-[10px] font-black px-2 py-1 bg-white/50 rounded-lg text-slate-600 uppercase tracking-wider shadow-sm">{trend}</span>
+            <span className="text-[10px] font-black px-2 py-1 bg-slate-100 rounded-lg text-slate-600 uppercase tracking-wider">{trend}</span>
         </div>
         <h4 className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">{label}</h4>
         <p className="text-xl md:text-2xl font-black text-slate-800 mt-1">{value}</p>
