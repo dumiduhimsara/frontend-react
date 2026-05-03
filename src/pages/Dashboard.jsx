@@ -212,7 +212,7 @@ const Dashboard = () => {
         label="මුළු පාරිභෝගිකයින්" 
         value={customers.length} 
         trend="+0%" 
-        color="bg-blue-500/10" 
+        color="bg-blue-500/30" 
         bgColor="bg-blue-50" 
     />
     
@@ -222,7 +222,7 @@ const Dashboard = () => {
         label="වැඩිම ණය ඇති පාරිභෝගිකයා" 
         value={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? `Rs. ${topDebtors[0].debtAmount.toFixed(2)}` : "Rs. 0.00"} 
         trend={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? topDebtors[0].name : "N/A"} 
-        color="bg-red-500/10" 
+        color="bg-red-500/30" 
         bgColor="bg-red-50" 
     />
 
@@ -232,7 +232,7 @@ const Dashboard = () => {
         label="මුළු ණය මුදල (Total)" 
         value={`Rs. ${totalDebt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
         trend="ලැබීමට ඇති" 
-        color="bg-emerald-500/10" 
+        color="bg-emerald-500/30" 
         bgColor="bg-emerald-50" 
     />
 </div>
