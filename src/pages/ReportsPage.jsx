@@ -31,52 +31,59 @@ const ReportsPage = () => {
     const apiUrl = import.meta.env.VITE_API_URL;
 
     // PDF එක සෑදීමේ Function එක
-    const handleGeneratePDF = async () => {
-        if (!fromDate || !toDate) return alert("කරුණාකර දිනයන් තෝරන්න.");
+   const handleGeneratePDF = async () => {
+    if (!fromDate || !toDate) return alert("කරුණාකර දිනයන් තෝරන්න.");
+    
+    setIsGenerating(true);
+    try {
+        const res = await axios.get(`${apiUrl}/get-reports/${merchantId}?from=${fromDate}&to=${toDate}`);
         
-        setIsGenerating(true);
-        try {
-            const res = await axios.get(`${apiUrl}/get-reports/${merchantId}?from=${fromDate}&to=${toDate}`);
-            
-            if (res.data.length === 0) {
-                alert("මෙම කාලසීමාව තුළ ගනුදෙනු කිසිවක් හමු වුණේ නැත.");
-                setIsGenerating(false);
-                return;
-            }
+        // Backend එකෙන් එන දත්ත console එකේ බලන්න (Check කිරීමට)
+        console.log("දත්ත ලැබුණා:", res.data);
 
-            const doc = new jsPDF();
-            
-            // PDF එකේ උඩ Heading එක
-            doc.setFontSize(20);
-            doc.text(`${shopName} - ණය වාර්තාව`, 14, 20);
-            
-            doc.setFontSize(10);
-            doc.text(`කාලසීමාව: ${fromDate} සිට ${toDate} දක්වා`, 14, 28);
-            doc.text(`වාර්තාව සැකසූ දිනය: ${new Date().toLocaleDateString('en-GB')}`, 14, 34);
-
-            // Table එක සැකසීම
-            doc.autoTable({
-                startY: 40,
-                head: [['දිනය', 'පාරිභෝගිකයා', 'වර්ගය', 'මුදල']],
-                body: res.data.map(item => [
-                    new Date(item.date).toLocaleDateString('en-GB'),
-                    item.customerName,
-                    item.type === 'add' ? 'ණය ඇඩ් කළා' : 'ණය පියෙව්වා',
-                    `Rs. ${item.amount.toFixed(2)}`
-                ]),
-                headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold' },
-                alternateRowStyles: { fillColor: [241, 245, 249] },
-                margin: { top: 40 },
-            });
-
-            doc.save(`${shopName}_Report_${fromDate}.pdf`);
-        } catch (err) {
-            console.error("PDF generation error:", err);
-            alert("PDF එක සෑදීම අසාර්ථකයි. කරුණාකර නැවත උත්සාහ කරන්න.");
-        } finally {
+        if (!res.data || res.data.length === 0) {
+            alert("මෙම කාලසීමාව තුළ ගනුදෙනු කිසිවක් හමු වුණේ නැත.");
             setIsGenerating(false);
+            return;
         }
-    };
+
+        const doc = new jsPDF();
+        
+        // PDF එකේ උඩ Heading එක
+        doc.setFontSize(20);
+        doc.text(`${shopName} - ණය වාර්තාව`, 14, 20);
+        
+        doc.setFontSize(10);
+        doc.text(`කාලසීමාව: ${fromDate} සිට ${toDate} දක්වා`, 14, 28);
+        doc.text(`වාර්තාව සැකසූ දිනය: ${new Date().toLocaleDateString('en-GB')}`, 14, 34);
+
+        // Table එක සඳහා දත්ත සකස් කිරීමේදී safe-check එකක් ඇතුළත් කරමු
+        const tableBody = res.data.map(item => [
+            item.date ? new Date(item.date).toLocaleDateString('en-GB') : "N/A",
+            item.customerName || "නම සඳහන් නොවේ", // නම නැතිනම් "නම සඳහන් නොවේ" ලෙස පෙන්වයි
+            item.type === 'add' ? 'ණය එකතු කළා' : 'ණය පියෙව්වා',
+            item.amount !== undefined ? `Rs. ${Number(item.amount).toFixed(2)}` : "Rs. 0.00"
+        ]);
+
+        // Table එක සැකසීම
+        doc.autoTable({
+            startY: 40,
+            head: [['දිනය', 'පාරිභෝගිකයා', 'වර්ගය', 'මුදල']],
+            body: tableBody,
+            headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [241, 245, 249] },
+            margin: { top: 40 },
+        });
+
+        doc.save(`${shopName}_Report_${fromDate}.pdf`);
+    } catch (err) {
+        // වැරැද්ද කුමක්දැයි පැහැදිලිව console එකේ පෙන්වයි
+        console.error("සවිස්තරාත්මක Error එක:", err);
+        alert("PDF එක සෑදීමේදී දෝෂයක් ඇති විය. කරුණාකර නැවත උත්සාහ කරන්න.");
+    } finally {
+        setIsGenerating(false);
+    }
+};
 
     const handleLogout = () => {
         localStorage.clear();
