@@ -204,10 +204,10 @@ const Dashboard = () => {
 
                 <div className="p-4 md:p-8 pb-10">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 items-stretch text-left">
+                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8 items-stretch text-left">
     {/* 1. මුළු පාරිභෝගිකයින් */}
     <StatCard 
-        icon={<Users className="text-blue-600" />} 
+        icon={<Users size={24} className="text-blue-600" />} 
         label="මුළු පාරිභෝගිකයින්" 
         value={customers.length} 
         trend="+0%" 
@@ -217,7 +217,7 @@ const Dashboard = () => {
     
     {/* 2. වැඩිම ණය ඇති පාරිභෝගිකයා */}
     <StatCard 
-        icon={<AlertCircle className="text-red-600" />} 
+        icon={<AlertCircle size={24} className="text-red-600" />} 
         label="වැඩිම ණය ඇති පාරිභෝගිකයා" 
         value={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? `Rs. ${topDebtors[0].debtAmount.toFixed(2)}` : "Rs. 0.00"} 
         trend={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? topDebtors[0].name : "N/A"} 
@@ -227,7 +227,7 @@ const Dashboard = () => {
 
     {/* 3. මුළු ණය මුදල */}
     <StatCard 
-        icon={<TrendingUp className="text-emerald-600" />} 
+        icon={<TrendingUp size={24} className="text-emerald-600" />} 
         label="මුළු ණය මුදල (Total)" 
         value={`Rs. ${totalDebt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
         trend="ලැබීමට ඇති" 
@@ -425,23 +425,21 @@ const NavItem = ({ icon, label, active = false }) => (
 );
 
 const StatCard = ({ icon, label, value, trend, color, bgColor }) => (
-    <div className={`${bgColor} p-6 rounded-[32px] border border-slate-100 shadow-sm transition-all hover:scale-[1.02] flex flex-col justify-between h-full`}>
-        <div className="flex justify-between items-start mb-6">
-            {/* අයිකනය */}
+    <div className={`${bgColor} p-6 rounded-[32px] border border-slate-100 shadow-sm transition-all hover:scale-[1.02] flex flex-col justify-between h-full w-full min-h-[180px]`}>
+        <div className="flex justify-between items-start mb-6 gap-2">
             <div className={`p-3 rounded-2xl ${color} shrink-0`}>
                 {icon}
             </div>
-            {/* දකුණු පැත්තේ තියෙන පොඩි ලේබලය (Trend/Name) */}
-            <span className="text-[10px] font-black px-2 py-1 bg-white/60 backdrop-blur-sm rounded-lg text-slate-600 uppercase tracking-wider shadow-sm max-w-[120px] truncate">
+            <span className="text-[10px] font-black px-2.5 py-1.5 bg-white/60 backdrop-blur-md rounded-xl text-slate-600 uppercase tracking-wider shadow-sm max-w-[120px] truncate">
                 {trend}
             </span>
         </div>
         
-        <div className="text-left">
+        <div className="text-left mt-auto">
             <h4 className="text-slate-500 text-[10px] font-bold uppercase tracking-widest leading-none mb-2">
                 {label}
             </h4>
-            <p className="text-xl md:text-2xl font-black text-slate-800 leading-none">
+            <p className="text-xl md:text-2xl font-black text-slate-800 leading-tight break-words">
                 {value}
             </p>
         </div>
