@@ -19,24 +19,13 @@ const Dashboard = () => {
     const [searchTerm, setSearchTerm] = useState(''); 
     const [history, setHistory] = useState([]); 
     const [dueDate, setDueDate] = useState(''); 
-    
-    // ✅ විසඳුම 4: Refresh කළත් මතක තබා ගැනීමට LocalStorage භාවිතය
-    const [remindedCustomers, setRemindedCustomers] = useState(() => {
-        const saved = localStorage.getItem('reminded_today');
-        return saved ? JSON.parse(saved) : [];
-    });
 
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
     const merchantId = localStorage.getItem("merchantId");
     const apiUrl = import.meta.env.VITE_API_URL;
 
-    // LocalStorage එකට දත්ත සේව් කිරීම
-    useEffect(() => {
-        localStorage.setItem('reminded_today', JSON.stringify(remindedCustomers));
-    }, [remindedCustomers]);
-
-    // --- ණය වැඩිම පාරිභෝගිකයින් 5 දෙනා තෝරා ගැනීම ---
+    // --- ණය වැඩිම පාරිභෝගිකයින් 5 දෙනා ---
     const topDebtors = [...customers]
         .sort((a, b) => b.debtAmount - a.debtAmount)
         .slice(0, 5);
@@ -70,25 +59,35 @@ const Dashboard = () => {
         }
     };
 
-    // ✅ WhatsApp පණිවිඩය යැවීම සහ ලකුණු කිරීම
-    const sendWhatsApp = (c) => {
+    // ✅ විසඳුම: මතක් කිරීමේ තත්ත්වය Database එකට යවන function එක
+    const updateReminderStatus = async (customerId, type) => {
+        try {
+            const todayStr = new Date().toISOString().split('T')[0];
+            await axios.put(`${apiUrl}/update-reminder/${customerId}`, {
+                lastRemindedDate: todayStr,
+                lastRemindedType: type
+            });
+            fetchCustomers(); // දත්ත නැවත ලබාගෙන UI එක refresh කරයි
+        } catch (err) {
+            console.error("Reminder sync error:", err);
+        }
+    };
+
+    // WhatsApp පණිවිඩය යැවීම
+    const sendWhatsApp = (c, type) => {
         const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
         const message = `ආයුබෝවන් ${c.name}, ${shopName} වෙත ඔබ ගෙවීමට ඇති රු. ${Math.abs(c.debtAmount).toFixed(2)} ක ණය මුදල ${dateStr} දිනට පෙර ගෙවන ලෙස කාරුණිකව මතක් කරමු. ස්තූතියි!`;
         const url = `https://wa.me/94${c.phone.substring(1)}?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');
-        if (!remindedCustomers.includes(c._id)) {
-            setRemindedCustomers(prev => [...prev, c._id]);
-        }
+        updateReminderStatus(c._id, type); // ✅ Database එක update කරයි
     };
 
-    // ✅ සාමාන්‍ය SMS පණිවිඩය යැවීම සහ ලකුණු කිරීම
-    const sendSMS = (c) => {
+    // සාමාන්‍ය SMS පණිවිඩය යැවීම
+    const sendSMS = (c, type) => {
         const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
         const message = `Ayubowan ${c.name}, ${shopName} naya mudala Rs. ${Math.abs(c.debtAmount).toFixed(2)} labana ${dateStr} dinata pera gewana lesa mathak karamu. Sthuthiy!`;
         window.location.href = `sms:+94${c.phone.substring(1)}?body=${encodeURIComponent(message)}`;
-        if (!remindedCustomers.includes(c._id)) {
-            setRemindedCustomers(prev => [...prev, c._id]);
-        }
+        updateReminderStatus(c._id, type); // ✅ Database එක update කරයි
     };
 
     const handleDeleteCustomer = async (id) => {
@@ -106,11 +105,6 @@ const Dashboard = () => {
         }
     };
 
-    const filteredCustomers = customers.filter(customer => 
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        customer.phone.includes(searchTerm)
-    );
-
     const fetchCustomers = async () => {
         try {
             const res = await axios.get(`${apiUrl}/get-customers/${merchantId}`);
@@ -126,14 +120,12 @@ const Dashboard = () => {
 
     const handleUpdateDebt = async (id, type) => {
         if (!updateAmount || isNaN(updateAmount)) return alert("කරුණාකර නිවැරදි මුදලක් ඇතුළත් කරන්න.");
-        
         try {
             const res = await axios.put(`${apiUrl}/update-debt/${id}`, {
                 amount: updateAmount,
                 type: type,
                 dueDate: dueDate
             });
-
             if (res.status === 200) {
                 alert(res.data.message);
                 setUpdateAmount('');
@@ -149,6 +141,12 @@ const Dashboard = () => {
     const handleLogout = () => {
         localStorage.clear();
         navigate('/');
+    };
+
+    // පරීක්ෂා කිරීමේ function එක (UI එකේ පෙන්විය යුත්තේ "මතක් කළා" ද නැද්ද යන්න)
+    const isAlreadyReminded = (customer, listType) => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        return customer.lastRemindedDate === todayStr && customer.lastRemindedType === listType;
     };
 
     return (
@@ -200,7 +198,7 @@ const Dashboard = () => {
                         <StatCard icon={<TrendingUp className="text-emerald-600" />} label="අද විකුණුම්" value="Rs. 0.00" trend="+0%" color="bg-emerald-50" />
                     </div>
 
-                    {/* ✅ විසඳුම 3: නියමිත දිනට ණය නොගෙවූ අයටත් SMS ඔප්ෂන් එක එකතු කළා */}
+                    {/* ✅ 1. නියමිත දිනට ණය නොගෙවූ අය (Overdue) */}
                     {overdueCustomers.length > 0 && (
                         <div className="bg-red-50 rounded-[32px] p-6 border border-red-100 mb-8 text-left">
                             <div className="flex items-center gap-3 mb-6 text-red-600">
@@ -212,20 +210,16 @@ const Dashboard = () => {
                                     <div key={c._id} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-red-200 shadow-sm">
                                         <div>
                                             <p className="font-bold text-slate-800 text-sm">{c.name}</p>
-                                            <p className="text-[10px] text-slate-400 font-medium flex items-center gap-1 mt-0.5">
-                                                <Phone size={10} /> {c.phone}
-                                              </p>
-                                            <p className="text-[10px] text-red-600 font-black uppercase">
-                                                ගෙවිය යුතුව තිබුණේ: {new Date(c.dueDate).toLocaleDateString('en-GB')}
-                                            </p>
+                                            <p className="text-[10px] text-slate-400 font-medium flex items-center gap-1 mt-0.5"><Phone size={10} /> {c.phone}</p>
+                                            <p className="text-[10px] text-red-600 font-black uppercase mt-1">ගෙවිය යුතුව තිබුණේ: {new Date(c.dueDate).toLocaleDateString('en-GB')}</p>
                                         </div>
                                         <div className="flex gap-2">
-                                            {remindedCustomers.includes(c._id) ? (
-                                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl flex items-center gap-1">මතක් කළා ✅</span>
+                                            {isAlreadyReminded(c, 'overdue') ? (
+                                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl flex items-center gap-1 animate-in zoom-in">මතක් කළා ✅</span>
                                             ) : (
                                                 <>
-                                                    <button onClick={() => sendWhatsApp(c)} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all active:scale-90"><MessageCircle size={18} /></button>
-                                                    <button onClick={() => sendSMS(c)} className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all active:scale-90"><PhoneOutgoing size={18} /></button>
+                                                    <button onClick={() => sendWhatsApp(c, 'overdue')} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all active:scale-90"><MessageCircle size={18} /></button>
+                                                    <button onClick={() => sendSMS(c, 'overdue')} className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all active:scale-90"><PhoneOutgoing size={18} /></button>
                                                 </>
                                             )}
                                         </div>
@@ -235,7 +229,7 @@ const Dashboard = () => {
                         </div>
                     )}
 
-                    {/* Upcoming Reminders */}
+                    {/* ✅ 2. ළඟදී ණය ගෙවිය යුතු අය (Upcoming) */}
                     <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-8 text-left">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-orange-50 text-orange-600 rounded-xl"><Bell size={20} /></div>
@@ -251,17 +245,17 @@ const Dashboard = () => {
                                         <div key={c._id} className="flex items-center justify-between p-4 bg-orange-50/30 rounded-2xl border border-orange-100 hover:bg-orange-50 transition-all">
                                             <div>
                                                 <p className="font-bold text-slate-700 text-sm">{c.name}</p>
-                                                <p className="text-[10px] text-orange-600 font-black uppercase tracking-wider">
+                                                <p className="text-[10px] text-orange-600 font-black uppercase tracking-wider mt-0.5">
                                                    {diffDays === 0 ? "අද දින ගෙවිය යුතුයි" : `තව දින ${diffDays} කින් ගෙවිය යුතුයි`}
                                                 </p>
                                             </div>
                                             <div className="flex gap-2">
-                                                {remindedCustomers.includes(c._id) ? (
+                                                {isAlreadyReminded(c, 'upcoming') ? (
                                                     <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl flex items-center gap-1 animate-in zoom-in">මතක් කළා ✅</span>
                                                 ) : (
                                                     <>
-                                                        <button onClick={() => sendWhatsApp(c)} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all active:scale-90" title="WhatsApp"><MessageCircle size={18} /></button>
-                                                        <button onClick={() => sendSMS(c)} className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all active:scale-90" title="SMS"><PhoneOutgoing size={18} /></button>
+                                                        <button onClick={() => sendWhatsApp(c, 'upcoming')} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all active:scale-90"><MessageCircle size={18} /></button>
+                                                        <button onClick={() => sendSMS(c, 'upcoming')} className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all active:scale-90"><PhoneOutgoing size={18} /></button>
                                                     </>
                                                 )}
                                             </div>
@@ -272,7 +266,7 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Top 5 Debtors */}
+                    {/* Top 5 Debtors List */}
                     <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-8 text-left">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-red-50 text-red-600 rounded-xl"><TrendingUp size={20} /></div>
@@ -298,6 +292,7 @@ const Dashboard = () => {
                         </div>
                     </div>
 
+                    {/* Customer List Header */}
                     <div className="flex justify-between items-center mb-4 text-left">
                         <h3 className="text-xl font-black text-slate-800">පාරිභෝගික ලැයිස්තුව</h3>
                         <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-md active:scale-95"><PlusCircle size={18} /> අලුත් කෙනෙක්</button>
@@ -313,42 +308,35 @@ const Dashboard = () => {
                         />
                     </div>
 
-                    {filteredCustomers.length === 0 ? (
-                        <div className="bg-white rounded-[32px] p-12 border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
-                            <Package size={48} className="text-slate-200 mb-4" />
-                            <h3 className="text-lg font-bold text-slate-400">ගැලපෙන පාරිභෝගිකයෝ නැත</h3>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {filteredCustomers.map((customer) => (
-                                <div key={customer._id} className="relative bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all text-left group">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="h-12 w-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-600 font-bold text-lg">{customer.name[0]}</div>
-                                        <div className="text-right">
-                                            {/* ✅ විසඳුම 1: ණය පියවා වැඩිපුර ඇති විට කොළ පාටින් Balance එක පෙන්වීම */}
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase">
-                                                {customer.debtAmount < 0 ? 'කඩේ ගාව ඇති මුදල' : 'දැනට ණය මුදල'}
-                                            </p>
-                                            <p className={`text-xl font-black ${customer.debtAmount > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                                                Rs. {Math.abs(customer.debtAmount).toFixed(2)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <h4 className="text-lg font-black text-slate-800 leading-tight">{customer.name}</h4>
-                                    <div className="flex items-center text-slate-500 text-sm mt-1 mb-4 gap-1"><Phone size={14} /> {customer.phone}</div>
-                                    
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <button onClick={() => { setSelectedCustomer(customer); setUpdateAmount('0'); }} className="py-3 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all active:scale-95">ණය Update</button>
-                                        <button onClick={() => { setSelectedCustomer(customer); setUpdateAmount(''); fetchHistory(customer._id); }} className="py-3 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all active:scale-95">විස්තර බලන්න</button>
+                    {/* Customer Cards Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {customers.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.phone.includes(searchTerm)).map((customer) => (
+                            <div key={customer._id} className="relative bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all text-left group">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="h-12 w-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-600 font-bold text-lg">{customer.name[0]}</div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">
+                                            {customer.debtAmount < 0 ? 'කඩේ ගාව ඇති මුදල' : 'දැනට ණය මුදල'}
+                                        </p>
+                                        <p className={`text-xl font-black ${customer.debtAmount > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                            Rs. {Math.abs(customer.debtAmount).toFixed(2)}
+                                        </p>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    )}
+                                <h4 className="text-lg font-black text-slate-800 leading-tight">{customer.name}</h4>
+                                <div className="flex items-center text-slate-500 text-sm mt-1 mb-4 gap-1"><Phone size={14} /> {customer.phone}</div>
+                                
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button onClick={() => { setSelectedCustomer(customer); setUpdateAmount('0'); }} className="py-3 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all active:scale-95">ණය Update</button>
+                                    <button onClick={() => { setSelectedCustomer(customer); setUpdateAmount(''); fetchHistory(customer._id); }} className="py-3 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all active:scale-95">විස්තර බලන්න</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </main>
 
-            {/* Modal for managing debt */}
+            {/* Debt Management Modal */}
             {selectedCustomer && updateAmount !== '' && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl animate-in zoom-in duration-200">
