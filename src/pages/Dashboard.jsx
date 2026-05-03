@@ -19,6 +19,7 @@ const Dashboard = () => {
     const [searchTerm, setSearchTerm] = useState(''); 
     const [history, setHistory] = useState([]); 
     const [dueDate, setDueDate] = useState(''); 
+    const [remindedCustomers, setRemindedCustomers] = useState([]);
 
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
@@ -39,7 +40,16 @@ const Dashboard = () => {
     const diffTime = dueDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays >= 0 && diffDays <= 2;
-});    
+}); 
+
+const overdueCustomers = customers.filter(customer => {
+        if (!customer.dueDate || customer.debtAmount <= 0) return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const customerDueDate = new Date(customer.dueDate);
+        customerDueDate.setHours(0, 0, 0, 0);
+        return customerDueDate < today;
+    });
 
     const fetchHistory = async (customerId) => {
         try {
@@ -50,18 +60,21 @@ const Dashboard = () => {
         }
     };
 
-const sendWhatsApp = (c) => {
+// ✅ WhatsApp පණිවිඩය යැවීම සහ ලකුණු කිරීම
+    const sendWhatsApp = (c) => {
         const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
         const message = `ආයුබෝවන් ${c.name}, ${shopName} වෙත ඔබ ගෙවීමට ඇති රු. ${c.debtAmount.toFixed(2)} ක ණය මුදල ${dateStr} දිනට පෙර ගෙවන ලෙස කාරුණිකව මතක් කරමු. ස්තූතියි!`;
         const url = `https://wa.me/94${c.phone.substring(1)}?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');
+        setRemindedCustomers(prev => [...prev, c._id]); // ✅ ID එක සේව් කරයි
     };
 
-    // ✅ සාමාන්‍ය SMS පණිවිඩය යැවීමේ Function එක
+    // ✅ සාමාන්‍ය SMS පණිවිඩය යැවීම සහ ලකුණු කිරීම
     const sendSMS = (c) => {
         const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
         const message = `Ayubowan ${c.name}, ${shopName} naya mudala Rs. ${c.debtAmount.toFixed(2)} labana ${dateStr} dinata pera gewana lesa mathak karamu. Sthuthiy!`;
         window.location.href = `sms:+94${c.phone.substring(1)}?body=${encodeURIComponent(message)}`;
+        setRemindedCustomers(prev => [...prev, c._id]); // ✅ ID එක සේව් කරයි
     };
 
     const handleDeleteCustomer = async (id) => {
@@ -176,6 +189,35 @@ const sendWhatsApp = (c) => {
 
                         <StatCard icon={<TrendingUp className="text-emerald-600" />} label="අද විකුණුම්" value="Rs. 0.00" trend="+0%" color="bg-emerald-50" />
                     </div>
+
+                    {/* ✅ පොරොන්දු කඩ කළ අය (Overdue) ලිස්ට් එක */}
+                    {overdueCustomers.length > 0 && (
+                        <div className="bg-red-50 rounded-[32px] p-6 border border-red-100 mb-8 text-left">
+                            <div className="flex items-center gap-3 mb-6 text-red-600">
+                                <AlertCircle size={20} />
+                                <h3 className="text-xl font-black italic">පොරොන්දු කඩ කළ අය (දින පහු වූ)</h3>
+                            </div>
+                            <div className="space-y-4">
+                                {overdueCustomers.map((c) => (
+                                    <div key={c._id} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-red-200">
+                                        <div>
+                                            <p className="font-bold text-slate-800 text-sm">{c.name}</p>
+                                            <p className="text-[10px] text-red-600 font-black uppercase">
+                                                ගෙවිය යුතුව තිබුණේ: {new Date(c.dueDate).toLocaleDateString('en-GB')}
+                                            </p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            {remindedCustomers.includes(c._id) ? (
+                                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl flex items-center gap-1">මතක් කළා ✅</span>
+                                            ) : (
+                                                <button onClick={() => sendWhatsApp(c)} className="p-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all"><MessageCircle size={18} /></button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* ✅ අලුතෙන් ඇඩ් කළ ගෙවීම් මතක් කිරීම් (Reminders) කොටස */}
                     <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-8 text-left">
