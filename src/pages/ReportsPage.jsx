@@ -30,7 +30,7 @@ const ReportsPage = () => {
     const merchantId = localStorage.getItem("merchantId");
     const apiUrl = import.meta.env.VITE_API_URL;
 
-    const handleGeneratePDF = async () => {
+const handleGeneratePDF = async () => {
     if (!fromDate || !toDate) return alert("කරුණාකර දිනයන් තෝරන්න.");
     
     setIsGenerating(true);
@@ -45,28 +45,35 @@ const ReportsPage = () => {
 
         const doc = new jsPDF();
         
-        // PDF Heading
+        // --- PDF Heading (English icons/text to avoid symbols) ---
+        doc.setFont("helvetica", "bold");
         doc.setFontSize(20);
-        doc.text(`${shopName} - ණය වාර්තාව`, 14, 20);
+        doc.text(`${shopName} - Credit Report`, 14, 20);
         
+        doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
-        doc.text(`කාලසීමාව: ${fromDate} සිට ${toDate} දක්වා`, 14, 28);
-        doc.text(`වාර්තාව සැකසූ දිනය: ${new Date().toLocaleDateString('en-GB')}`, 14, 34);
+        doc.text(`Duration: ${fromDate} to ${toDate}`, 14, 28);
+        doc.text(`Generated on: ${new Date().toLocaleDateString('en-GB')}`, 14, 34);
 
-        // ✅ දත්ත සකස් කිරීමේදී safe-check එකක් දාමු (නම හෝ මුදල නැතිනම් crash නොවීමට)
+        // --- දත්ත සකස් කිරීම (සිංග්ලිෂ් භාවිතයෙන්) ---
         const tableBody = res.data.map(item => [
             item.date ? new Date(item.date).toLocaleDateString('en-GB') : "N/A",
-            item.customerName || "නම සඳහන් නොවේ",
-            item.type === 'add' ? 'ණය එකතු කළා' : 'ණය පියෙව්වා',
+            item.customerName || "No Name", 
+            item.type === 'add' ? 'Credit Added' : 'Payment Settled', // ණය එකතු කළා -> Credit Added
             item.amount !== undefined ? `Rs. ${Number(item.amount).toFixed(2)}` : "Rs. 0.00"
         ]);
 
-        // ✅ Vite/Build errors මගහැරීමට 'autoTable(doc, ...)' ලෙස පාවිච්චි කරන්න
+        // --- Table එක සැකසීම ---
         autoTable(doc, {
             startY: 40,
-            head: [['දිනය', 'පාරිභෝගිකයා', 'වර්ගය', 'මුදල']],
+            head: [['Date', 'Customer', 'Type', 'Amount']], // Heading ටිකත් ඉංග්‍රීසියෙන්
             body: tableBody,
-            headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold' },
+            styles: { font: "helvetica", fontSize: 10 },
+            headStyles: { 
+                fillColor: [37, 99, 235], 
+                textColor: [255, 255, 255], 
+                fontStyle: 'bold' 
+            },
             alternateRowStyles: { fillColor: [241, 245, 249] },
             margin: { top: 40 },
         });
