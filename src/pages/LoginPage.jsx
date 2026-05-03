@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { Phone, Lock, ArrowRight } from 'lucide-react';
+import { Phone, Lock, ArrowRight, Loader2 } from 'lucide-react'; // ✅ Loader2 එක් කළා
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // ✅ අලුතින් එක් කළා
+import axios from 'axios'; 
 import bgImage from '../assets/bg.webp';
 
 const LoginPage = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // ✅ Loading state එකක් එක් කළා
   const navigate = useNavigate();
 
-  // ✅ Login Logic එක මෙතනින් ආරම්භ වේ
   const handleLogin = async (e) => {
     e.preventDefault();
+    setIsLoading(true); // ✅ Loading ආරම්භය
     try {
       const apiUrl = import.meta.env.VITE_API_URL;
       const res = await axios.post(`${apiUrl}/login-shop`, { phone, password });
@@ -21,11 +22,14 @@ const LoginPage = () => {
         localStorage.setItem("merchantName", res.data.merchant.ownerName);
         localStorage.setItem("shopName", res.data.merchant.shopName);
         
-        alert("සාදරයෙන් පිළිගනිමු! ✅");
+        // ✅ සාර්ථක නම් Alert එකක් නැතිව කෙළින්ම Dashboard එකට යයි
         navigate('/dashboard'); 
       }
     } catch (err) {
+      // ✅ වැරැද්දක් වුණොත් පමණක් Alert එක පෙන්වයි
       alert(err.response?.data?.message || "Login අසාර්ථකයි. නැවත උත්සාහ කරන්න.");
+    } finally {
+      setIsLoading(false); // ✅ Loading අවසානය
     }
   };
 
@@ -49,7 +53,6 @@ const LoginPage = () => {
             <p className="text-blue-900/80 font-bold text-sm">නැවත සාදරයෙන් පිළිගනිමු!</p>
           </div>
 
-          {/* ✅ onSubmit එකට handleLogin සම්බන්ධ කළා */}
           <form className="space-y-5" onSubmit={handleLogin}>
             <div>
               <div className="relative group">
@@ -61,6 +64,7 @@ const LoginPage = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
+                  disabled={isLoading} // ✅ Loading වෙද්දී Input disable කිරීම
                 />
               </div>
             </div>
@@ -75,22 +79,33 @@ const LoginPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading} // ✅ Loading වෙද්දී Input disable කිරීම
                 />
               </div>
             </div>
 
             <button 
               type="submit"
-              className="w-full py-4 bg-blue-700 hover:bg-blue-800 text-white rounded-2xl text-lg font-bold shadow-xl shadow-blue-900/20 active:scale-95 transition-all flex items-center justify-center group"
+              disabled={isLoading} // ✅ Loading වෙද්දී බටන් එක disable කිරීම
+              className="w-full py-4 bg-blue-700 hover:bg-blue-800 text-white rounded-2xl text-lg font-bold shadow-xl shadow-blue-900/20 active:scale-95 transition-all flex items-center justify-center group disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              ඇතුළු වන්න <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> ඇතුළු වෙමින්...
+                </>
+              ) : (
+                <>
+                  ඇතුළු වන්න <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </button>
           </form>
 
           <div className="mt-8 text-center border-t border-white/20 pt-6">
             <button 
               onClick={() => navigate('/register')} 
-              className="text-blue-900 font-extrabold hover:text-blue-700 transition-colors drop-shadow-sm"
+              disabled={isLoading}
+              className="text-blue-900 font-extrabold hover:text-blue-700 transition-colors drop-shadow-sm disabled:opacity-50"
             >
               අලුත් ගිණුමක් ආරම්භ කරන්න
             </button>
