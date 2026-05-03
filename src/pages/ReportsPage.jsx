@@ -1,19 +1,29 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, TrendingUp, LogOut, FileText, Download, Menu, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // ✅ useLocation අයින් කළා (පාවිච්චි වෙන්නේ නැති නිසා)
+import { LayoutDashboard, TrendingUp, Menu, X, FileText, Download } from 'lucide-react'; // ✅ පාවිච්චි වන ටික විතරක් ඉතුරු කළා
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
+// ✅ NavItem එක උඩින්ම define කරන්න (එතකොට පැටලෙන්නේ නැහැ)
+const NavItem = ({ icon, label, active = false, onClick }) => (
+    <div 
+        onClick={onClick} 
+        className={`flex items-center space-x-3 p-3 rounded-xl cursor-pointer transition-all ${
+            active ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-white/5 hover:text-white'
+        }`}
+    >
+        {icon} <span className="text-sm font-bold">{label}</span>
+    </div>
+);
+
 const ReportsPage = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
     const merchantId = localStorage.getItem("merchantId");
     const apiUrl = import.meta.env.VITE_API_URL;
@@ -59,6 +69,7 @@ const ReportsPage = () => {
                     <NavItem icon={<TrendingUp size={20}/>} label="ගනුදෙනු වාර්තා" active />
                 </nav>
             </aside>
+            
             <main className="flex-1 flex flex-col h-screen overflow-y-auto">
                 <header className="bg-white border-b p-6 flex justify-between items-center sticky top-0 z-10">
                     <div className="flex items-center gap-4">
@@ -72,7 +83,11 @@ const ReportsPage = () => {
                             <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="p-4 bg-slate-50 border rounded-2xl outline-none font-bold" />
                             <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="p-4 bg-slate-50 border rounded-2xl outline-none font-bold" />
                         </div>
-                        <button onClick={handleGeneratePDF} disabled={isGenerating || !fromDate || !toDate} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-600/20 active:scale-95 transition-all">
+                        <button 
+                            onClick={handleGeneratePDF} 
+                            disabled={isGenerating || !fromDate || !toDate} 
+                            className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-600/20 active:scale-95 transition-all"
+                        >
                             {isGenerating ? "වාර්තාව සකසමින්..." : "PDF වාර්තාව බාගත කරන්න"}
                         </button>
                     </div>
@@ -81,11 +96,5 @@ const ReportsPage = () => {
         </div>
     );
 };
-
-const NavItem = ({ icon, label, active = false, onClick }) => (
-    <div onClick={onClick} className={`flex items-center space-x-3 p-3 rounded-xl cursor-pointer transition-all ${active ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
-        {icon} <span className="text-sm font-bold">{label}</span>
-    </div>
-);
 
 export default ReportsPage;
