@@ -5,6 +5,7 @@ import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard'; 
 import ReportsPage from './pages/ReportsPage';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
+import AccessDenied from './pages/AccessDenied';
 
 function App() {
   return (

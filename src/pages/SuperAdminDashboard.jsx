@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Users, ShieldAlert, CheckCircle, Lock, Unlock, RefreshCw, Store } from "lucide-react";
+
 const SuperAdminDashboard = () => {
     const [merchants, setMerchants] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false); // ✅ Auth එක check කිරීමට
     const apiUrl = import.meta.env.VITE_API_URL;
 
     // සියලුම Merchants ලා ගෙන්නා ගැනීම
@@ -19,7 +21,16 @@ const SuperAdminDashboard = () => {
     };
 
     useEffect(() => {
-        fetchMerchants();
+        // ✅ පිටුව Load වෙද්දී Password එක විමසීම
+        const adminPass = prompt("Admin Password එක ඇතුළත් කරන්න:");
+        
+        if (adminPass === "pakaya") { // 👈 උඹ ඉල්ලපු password එක
+            setIsAuthenticated(true);
+            fetchMerchants();
+        } else {
+            alert("වැරදි Password එකක්! ඔබට අවසර නැත.");
+            window.location.href = "/"; // වැරදි නම් මුල් පිටුවට (Login) යවයි
+        }
     }, []);
 
     // Block/Unblock කිරීම
@@ -27,7 +38,7 @@ const SuperAdminDashboard = () => {
         if (!window.confirm("ඔබට මෙම කඩයේ තත්ත්වය වෙනස් කිරීමට අවශ්‍යද?")) return;
         try {
             await axios.put(`${apiUrl}/admin/toggle-block/${id}`);
-            fetchMerchants(); // දත්ත Update කිරීම
+            fetchMerchants(); 
         } catch (err) {
             alert("Error updating status");
         }
@@ -44,6 +55,9 @@ const SuperAdminDashboard = () => {
             alert("Error renewing subscription");
         }
     };
+
+    // පස්වර්ඩ් එක වැරදි නම් කිසිවක් පෙන්වන්නේ නැත
+    if (!isAuthenticated) return null;
 
     if (loading) return <div className="flex justify-center items-center h-screen font-black uppercase tracking-widest text-slate-400">Loading Admin Panel...</div>;
 
