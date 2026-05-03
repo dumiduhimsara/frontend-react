@@ -195,7 +195,7 @@ const overdueCustomers = customers.filter(customer => {
                         <div className="bg-red-50 rounded-[32px] p-6 border border-red-100 mb-8 text-left">
                             <div className="flex items-center gap-3 mb-6 text-red-600">
                                 <AlertCircle size={20} />
-                                <h3 className="text-xl font-black italic">පොරොන්දු කඩ කළ අය (දින පහු වූ)</h3>
+                                <h3 className="text-xl font-black italic">නියමිත දිනට ණය නොගෙවූ අය</h3>
                             </div>
                             <div className="space-y-4">
                                 {overdueCustomers.map((c) => (
