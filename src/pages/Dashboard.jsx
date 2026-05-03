@@ -204,21 +204,37 @@ const Dashboard = () => {
 
                 <div className="p-4 md:p-8 pb-10">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-                        <StatCard icon={<Users className="text-blue-600" />} label="මුළු පාරිභෝගිකයින්" value={customers.length} trend="+0%" color="bg-blue-50" />
-                        <StatCard 
-                            icon={<AlertCircle className="text-red-600" />} 
-                            label="වැඩිම ණය ඇති පාරිභෝගිකයා" 
-                            value={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? `Rs. ${topDebtors[0].debtAmount.toFixed(2)}` : "Rs. 0.00"} 
-                            trend={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? topDebtors[0].name : "N/A"} 
-                            color="bg-red-50" 
-                        />
-                        <StatCard 
-                            icon={<TrendingUp className="text-emerald-600" />} 
-                            label="මුළු ණය මුදල (Total)" 
-                            value={`Rs. ${totalDebt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
-                            trend="ලැබීමට ඇති" 
-                            color="bg-emerald-50" 
-                        />
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 text-left">
+    {/* 1. මුළු පාරිභෝගිකයින් - නිල් පාට */}
+    <StatCard 
+        icon={<Users className="text-blue-600" />} 
+        label="මුළු පාරිභෝගිකයින්" 
+        value={customers.length} 
+        trend="+0%" 
+        color="bg-blue-500/10" 
+        bgColor="bg-blue-50" 
+    />
+    
+    {/* 2. වැඩිම ණය ඇති පාරිභෝගිකයා - රතු පාට */}
+    <StatCard 
+        icon={<AlertCircle className="text-red-600" />} 
+        label="වැඩිම ණය ඇති පාරිභෝගිකයා" 
+        value={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? `Rs. ${topDebtors[0].debtAmount.toFixed(2)}` : "Rs. 0.00"} 
+        trend={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? topDebtors[0].name : "N/A"} 
+        color="bg-red-500/10" 
+        bgColor="bg-red-50" 
+    />
+
+    {/* 3. මුළු ණය මුදල - කොළ පාට */}
+    <StatCard 
+        icon={<TrendingUp className="text-emerald-600" />} 
+        label="මුළු ණය මුදල (Total)" 
+        value={`Rs. ${totalDebt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
+        trend="ලැබීමට ඇති" 
+        color="bg-emerald-500/10" 
+        bgColor="bg-emerald-50" 
+    />
+</div>
                     </div>
 
                     {/* ✅ 1. නියමිත දිනට ණය නොගෙවූ අය (Overdue) */}
@@ -408,11 +424,11 @@ const NavItem = ({ icon, label, active = false }) => (
     </div>
 );
 
-const StatCard = ({ icon, label, value, trend, color }) => (
-    <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm transition-transform hover:scale-[1.02]">
+const StatCard = ({ icon, label, value, trend, color, bgColor }) => (
+    <div className={`${bgColor} p-6 rounded-[28px] border border-slate-100 shadow-sm transition-transform hover:scale-[1.02]`}>
         <div className="flex justify-between items-start mb-4">
             <div className={`p-3 rounded-2xl ${color}`}>{icon}</div>
-            <span className="text-[10px] font-black px-2 py-1 bg-slate-100 rounded-lg text-slate-600 uppercase tracking-wider">{trend}</span>
+            <span className="text-[10px] font-black px-2 py-1 bg-white/50 rounded-lg text-slate-600 uppercase tracking-wider shadow-sm">{trend}</span>
         </div>
         <h4 className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">{label}</h4>
         <p className="text-xl md:text-2xl font-black text-slate-800 mt-1">{value}</p>
