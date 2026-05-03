@@ -14,7 +14,7 @@ const SuperAdminDashboard = () => {
             const res = await axios.get(`${apiUrl}/admin/get-all-merchants`);
             setMerchants(res.data);
         } catch (err) {
-            alert("දත්ත ලබාගැනීම අසාර්ථකයි!");
+            alert("Error fetching data!");
         } finally {
             setLoading(false);
         }
@@ -22,13 +22,13 @@ const SuperAdminDashboard = () => {
 
     useEffect(() => {
         // ✅ පිටුව Load වෙද්දී Password එක විමසීම
-        const adminPass = prompt("Admin Password එක ඇතුළත් කරන්න:");
+        const adminPass = prompt("Enter Super Admin Password:");
         
         if (adminPass === "pakaya") { // 👈 උඹ ඉල්ලපු password එක
             setIsAuthenticated(true);
             fetchMerchants();
         } else {
-            alert("වැරදි Password එකක්! ඔබට අවසර නැත.");
+            alert("Wrong Password! Access Denied.");
             window.location.href = "/"; // වැරදි නම් මුල් පිටුවට (Login) යවයි
         }
     }, []);
