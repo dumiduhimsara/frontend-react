@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
-import { Phone, Lock, ArrowRight, Loader2 } from 'lucide-react'; // ✅ Loader2 එක් කළා
+import { Phone, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; 
 import bgImage from '../assets/bg.webp';
+import AccessDenied from './AccessDenied'; // ✅ AccessDenied import කරලා තියෙන්නේ
 
 const LoginPage = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // ✅ Loading state එකක් එක් කළා
+  const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState(null); // ✅ පියවර 1: Error එක තියාගන්න state එක
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // ✅ Loading ආරම්භය
+    setIsLoading(true);
+    setAuthError(null); // අලුතින් ලොගින් වෙද්දී පරණ errors අයින් කරනවා
+
     try {
       const apiUrl = import.meta.env.VITE_API_URL;
       const res = await axios.post(`${apiUrl}/login-shop`, { phone, password });
@@ -21,17 +25,36 @@ const LoginPage = () => {
         localStorage.setItem("merchantId", res.data.merchant.id);
         localStorage.setItem("merchantName", res.data.merchant.ownerName);
         localStorage.setItem("shopName", res.data.merchant.shopName);
-        
-        // ✅ සාර්ථක නම් Alert එකක් නැතිව කෙළින්ම Dashboard එකට යයි
         navigate('/dashboard'); 
       }
     } catch (err) {
-      // ✅ වැරැද්දක් වුණොත් පමණක් Alert එක පෙන්වයි
-      alert(err.response?.data?.message || "Login අසාර්ථකයි. නැවත උත්සාහ කරන්න.");
+      // ✅ පියවර 2: Backend එකෙන් එන විශේෂ Status Codes අල්ලගන්න තැන
+      if (err.response) {
+        const status = err.response.status;
+        const message = err.response.data.message;
+
+        if (status === 402) {
+          // සේවා කාලය අවසන් (Expired)
+          setAuthError({ type: 'expired', message: message });
+        } else if (status === 403) {
+          // ගිණුම අත්හිටුවා ඇත (Blocked)
+          setAuthError({ type: 'blocked', message: message });
+        } else {
+          // වෙනත් සාමාන්‍ය වැරදි (වැරදි password වගේ)
+          alert(message || "Login අසාර්ථකයි. නැවත උත්සාහ කරන්න.");
+        }
+      } else {
+        alert("සර්වර් එක සමඟ සම්බන්ධ විය නොහැක.");
+      }
     } finally {
-      setIsLoading(false); // ✅ Loading අවසානය
+      setIsLoading(false);
     }
   };
+
+  // ✅ පියවර 3: ලොක් ස්ක්‍රීන් එක පෙන්විය යුතු නම් එය මෙතැනදී සිදු වේ
+  if (authError) {
+    return <AccessDenied type={authError.type} message={authError.message} />;
+  }
 
   return (
     <div 
@@ -64,7 +87,7 @@ const LoginPage = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
-                  disabled={isLoading} // ✅ Loading වෙද්දී Input disable කිරීම
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -79,14 +102,14 @@ const LoginPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  disabled={isLoading} // ✅ Loading වෙද්දී Input disable කිරීම
+                  disabled={isLoading}
                 />
               </div>
             </div>
 
             <button 
               type="submit"
-              disabled={isLoading} // ✅ Loading වෙද්දී බටන් එක disable කිරීම
+              disabled={isLoading}
               className="w-full py-4 bg-blue-700 hover:bg-blue-800 text-white rounded-2xl text-lg font-bold shadow-xl shadow-blue-900/20 active:scale-95 transition-all flex items-center justify-center group disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? (
