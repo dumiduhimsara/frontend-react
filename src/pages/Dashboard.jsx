@@ -19,6 +19,7 @@ const Dashboard = () => {
     const [searchTerm, setSearchTerm] = useState(''); 
     const [history, setHistory] = useState([]); 
     const [dueDate, setDueDate] = useState(''); 
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
@@ -134,26 +135,33 @@ const Dashboard = () => {
     useEffect(() => {
         if (merchantId) fetchCustomers();
     }, [merchantId]);
-
-    const handleUpdateDebt = async (id, type) => {
-        if (!updateAmount || isNaN(updateAmount)) return alert("කරුණාකර නිවැරදි මුදලක් ඇතුළත් කරන්න.");
-        try {
-            const res = await axios.put(`${apiUrl}/update-debt/${id}`, {
-                amount: updateAmount,
-                type: type,
-                dueDate: dueDate
-            });
-            if (res.status === 200) {
-                alert(res.data.message);
-                setUpdateAmount('');
-                setDueDate('');
-                setSelectedCustomer(null);
-                fetchCustomers(); 
-            }
-        } catch (err) {
-            alert("Error updating debt");
+const handleUpdateDebt = async (id, type) => {
+    if (!updateAmount || isNaN(updateAmount)) return alert("කරුණාකර නිවැරදි මුදලක් ඇතුළත් කරන්න.");
+    
+    // ✅ වැඩේ පටන් ගන්නකොට Loading state එක true කරනවා
+    setIsUpdating(true); 
+    
+    try {
+        const res = await axios.put(`${apiUrl}/update-debt/${id}`, {
+            amount: updateAmount,
+            type: type,
+            dueDate: dueDate
+        });
+        
+        if (res.status === 200) {
+            alert(res.data.message);
+            setUpdateAmount('');
+            setDueDate('');
+            setSelectedCustomer(null);
+            fetchCustomers(); 
         }
-    };
+    } catch (err) {
+        alert("Error updating debt");
+    } finally {
+        // ✅ වැඩේ සාර්ථක වුණත් වැරදුණත් බටන් එක ආයෙ වැඩ කරන තත්ත්වයට පත් කරනවා
+        setIsUpdating(false); 
+    }
+};
 
     const handleLogout = () => {
         localStorage.clear();
@@ -405,9 +413,34 @@ const Dashboard = () => {
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
-                            <button onClick={() => handleUpdateDebt(selectedCustomer._id, 'add')} className="flex items-center justify-center gap-2 py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-all active:scale-95 shadow-lg shadow-red-600/20"><PlusCircle size={18} /> ඇඩ් කරන්න</button>
-                            <button onClick={() => handleUpdateDebt(selectedCustomer._id, 'settle')} className="flex items-center justify-center gap-2 py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-600/20"><MinusCircle size={18} /> පියවන්න</button>
-                        </div>
+    {/* 1. ඇඩ් කරන්න බටන් එක */}
+    <button 
+        onClick={() => handleUpdateDebt(selectedCustomer._id, 'add')} 
+        disabled={isUpdating} // ✅ Request එක යන වෙලාවට බටන් එක ඔබන්න බැරි වෙන්න Disable කරනවා
+        className={`flex items-center justify-center gap-2 py-4 bg-red-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-red-600/20 
+            ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700 active:scale-95'}`}
+    >
+        {isUpdating ? (
+            <span className="flex items-center gap-2 italic">මොහොතක් ඉන්න...</span>
+        ) : (
+            <><PlusCircle size={18} /> ඇඩ් කරන්න</>
+        )}
+    </button>
+
+    {/* 2. පියවන්න බටන් එක */}
+    <button 
+        onClick={() => handleUpdateDebt(selectedCustomer._id, 'settle')} 
+        disabled={isUpdating} // ✅ Request එක යන වෙලාවට බටන් එක ඔබන්න බැරි වෙන්න Disable කරනවා
+        className={`flex items-center justify-center gap-2 py-4 bg-emerald-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-600/20 
+            ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-700 active:scale-95'}`}
+    >
+        {isUpdating ? (
+            <span className="flex items-center gap-2 italic">මොහොතක් ඉන්න...</span>
+        ) : (
+            <><MinusCircle size={18} /> පියවන්න</>
+        )}
+    </button>
+</div>
                     </div>
                 </div>
             )}
