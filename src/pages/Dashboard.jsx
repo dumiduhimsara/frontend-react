@@ -212,6 +212,9 @@ const Dashboard = () => {
                                     <div key={c._id} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-red-200 shadow-sm">
                                         <div>
                                             <p className="font-bold text-slate-800 text-sm">{c.name}</p>
+                                            <p className="text-[10px] text-slate-400 font-medium flex items-center gap-1 mt-0.5">
+                                                <Phone size={10} /> {c.phone}
+                                              </p>
                                             <p className="text-[10px] text-red-600 font-black uppercase">
                                                 ගෙවිය යුතුව තිබුණේ: {new Date(c.dueDate).toLocaleDateString('en-GB')}
                                             </p>
