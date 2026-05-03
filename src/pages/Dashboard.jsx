@@ -425,23 +425,23 @@ const NavItem = ({ icon, label, active = false }) => (
 );
 
 const StatCard = ({ icon, label, value, trend, color, bgColor }) => (
-    <div className={`${bgColor} p-4 md:p-6 rounded-[24px] md:rounded-[32px] border border-slate-100 shadow-sm transition-all hover:scale-[1.02] flex flex-col justify-between h-full min-w-0`}>
-        <div className="flex justify-between items-start mb-4 gap-2">
+    <div className={`${bgColor} p-6 rounded-[32px] border border-slate-100 shadow-sm transition-all hover:scale-[1.02] flex flex-col justify-between h-full min-h-[160px]`}>
+        <div className="flex justify-between items-start mb-4">
             {/* අයිකනය */}
-            <div className={`p-2.5 md:p-3 rounded-xl md:rounded-2xl ${color} shrink-0`}>
-                {React.cloneElement(icon, { size: 20 })}
+            <div className={`p-3 rounded-2xl ${color} shrink-0 shadow-sm`}>
+                {icon}
             </div>
             {/* දකුණු පැත්තේ ලේබලය */}
-            <span className="text-[9px] md:text-[10px] font-black px-2 py-1 bg-white/60 backdrop-blur-sm rounded-lg text-slate-600 uppercase tracking-wider shadow-sm truncate max-w-[100px]">
+            <span className="text-[10px] font-black px-2.5 py-1.5 bg-white/60 backdrop-blur-md rounded-xl text-slate-600 uppercase tracking-wider shadow-sm max-w-[120px] truncate">
                 {trend}
             </span>
         </div>
         
-        <div className="text-left overflow-hidden">
-            <h4 className="text-slate-500 text-[9px] md:text-[10px] font-bold uppercase tracking-widest leading-tight mb-1 truncate">
+        <div className="text-left mt-auto">
+            <h4 className="text-slate-500 text-[10px] font-bold uppercase tracking-widest leading-none mb-2">
                 {label}
             </h4>
-            <p className="text-lg md:text-2xl font-black text-slate-800 leading-none truncate">
+            <p className="text-xl md:text-2xl font-black text-slate-800 leading-none">
                 {value}
             </p>
         </div>
