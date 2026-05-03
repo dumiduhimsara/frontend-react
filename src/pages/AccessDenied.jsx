@@ -28,7 +28,7 @@ const AccessDenied = ({ message, type }) => {
                 <div className="space-y-4">
                     {/* Admin Contact Button */}
                     <a 
-                        href="tel:0771234567" // ✅ මෙතනට ඔයාගේ නම්බර් එක දාන්න
+                        href="tel:0763896121" // ✅ මෙතනට ඔයාගේ නම්බර් එක දාන්න
                         className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-center flex items-center justify-center gap-3 shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all"
                     >
                         <PhoneCall size={20} /> සහාය ලබාගන්න
