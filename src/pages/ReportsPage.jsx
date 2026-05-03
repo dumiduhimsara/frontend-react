@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, TrendingUp, Menu, X, FileText, Download } from 'lucide-react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 // ✅ NavItem Component එක (Build errors වළක්වා ගැනීමට ප්‍රධාන component එකෙන් පිටත තබා ඇත)
 const NavItem = ({ icon, label, active = false, onClick }) => (
@@ -30,17 +30,13 @@ const ReportsPage = () => {
     const merchantId = localStorage.getItem("merchantId");
     const apiUrl = import.meta.env.VITE_API_URL;
 
-    // PDF එක සෑදීමේ Function එක
-   const handleGeneratePDF = async () => {
+    const handleGeneratePDF = async () => {
     if (!fromDate || !toDate) return alert("කරුණාකර දිනයන් තෝරන්න.");
     
     setIsGenerating(true);
     try {
         const res = await axios.get(`${apiUrl}/get-reports/${merchantId}?from=${fromDate}&to=${toDate}`);
         
-        // Backend එකෙන් එන දත්ත console එකේ බලන්න (Check කිරීමට)
-        console.log("දත්ත ලැබුණා:", res.data);
-
         if (!res.data || res.data.length === 0) {
             alert("මෙම කාලසීමාව තුළ ගනුදෙනු කිසිවක් හමු වුණේ නැත.");
             setIsGenerating(false);
@@ -49,7 +45,7 @@ const ReportsPage = () => {
 
         const doc = new jsPDF();
         
-        // PDF එකේ උඩ Heading එක
+        // PDF Heading
         doc.setFontSize(20);
         doc.text(`${shopName} - ණය වාර්තාව`, 14, 20);
         
@@ -57,16 +53,16 @@ const ReportsPage = () => {
         doc.text(`කාලසීමාව: ${fromDate} සිට ${toDate} දක්වා`, 14, 28);
         doc.text(`වාර්තාව සැකසූ දිනය: ${new Date().toLocaleDateString('en-GB')}`, 14, 34);
 
-        // Table එක සඳහා දත්ත සකස් කිරීමේදී safe-check එකක් ඇතුළත් කරමු
+        // ✅ දත්ත සකස් කිරීමේදී safe-check එකක් දාමු (නම හෝ මුදල නැතිනම් crash නොවීමට)
         const tableBody = res.data.map(item => [
             item.date ? new Date(item.date).toLocaleDateString('en-GB') : "N/A",
-            item.customerName || "නම සඳහන් නොවේ", // නම නැතිනම් "නම සඳහන් නොවේ" ලෙස පෙන්වයි
+            item.customerName || "නම සඳහන් නොවේ",
             item.type === 'add' ? 'ණය එකතු කළා' : 'ණය පියෙව්වා',
             item.amount !== undefined ? `Rs. ${Number(item.amount).toFixed(2)}` : "Rs. 0.00"
         ]);
 
-        // Table එක සැකසීම
-        doc.autoTable({
+        // ✅ Vite/Build errors මගහැරීමට 'autoTable(doc, ...)' ලෙස පාවිච්චි කරන්න
+        autoTable(doc, {
             startY: 40,
             head: [['දිනය', 'පාරිභෝගිකයා', 'වර්ගය', 'මුදල']],
             body: tableBody,
@@ -77,8 +73,7 @@ const ReportsPage = () => {
 
         doc.save(`${shopName}_Report_${fromDate}.pdf`);
     } catch (err) {
-        // වැරැද්ද කුමක්දැයි පැහැදිලිව console එකේ පෙන්වයි
-        console.error("සවිස්තරාත්මක Error එක:", err);
+        console.error("PDF Detailed Error:", err);
         alert("PDF එක සෑදීමේදී දෝෂයක් ඇති විය. කරුණාකර නැවත උත්සාහ කරන්න.");
     } finally {
         setIsGenerating(false);
