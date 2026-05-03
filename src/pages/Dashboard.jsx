@@ -204,8 +204,8 @@ const Dashboard = () => {
 
                 <div className="p-4 md:p-8 pb-10">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 text-left">
-    {/* 1. මුළු පාරිභෝගිකයින් - නිල් පාට */}
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 items-stretch text-left">
+    {/* 1. මුළු පාරිභෝගිකයින් */}
     <StatCard 
         icon={<Users className="text-blue-600" />} 
         label="මුළු පාරිභෝගිකයින්" 
@@ -215,7 +215,7 @@ const Dashboard = () => {
         bgColor="bg-blue-50" 
     />
     
-    {/* 2. වැඩිම ණය ඇති පාරිභෝගිකයා - රතු පාට */}
+    {/* 2. වැඩිම ණය ඇති පාරිභෝගිකයා */}
     <StatCard 
         icon={<AlertCircle className="text-red-600" />} 
         label="වැඩිම ණය ඇති පාරිභෝගිකයා" 
@@ -225,7 +225,7 @@ const Dashboard = () => {
         bgColor="bg-red-50" 
     />
 
-    {/* 3. මුළු ණය මුදල - කොළ පාට */}
+    {/* 3. මුළු ණය මුදල */}
     <StatCard 
         icon={<TrendingUp className="text-emerald-600" />} 
         label="මුළු ණය මුදල (Total)" 
@@ -424,14 +424,27 @@ const NavItem = ({ icon, label, active = false }) => (
     </div>
 );
 
-const StatCard = ({ icon, label, value, trend, color }) => (
-    <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm transition-transform hover:scale-[1.02]">
-        <div className="flex justify-between items-start mb-4">
-            <div className={`p-3 rounded-2xl ${color}`}>{icon}</div>
-            <span className="text-[10px] font-black px-2 py-1 bg-slate-100 rounded-lg text-slate-600 uppercase tracking-wider">{trend}</span>
+const StatCard = ({ icon, label, value, trend, color, bgColor }) => (
+    <div className={`${bgColor} p-6 rounded-[32px] border border-slate-100 shadow-sm transition-all hover:scale-[1.02] flex flex-col justify-between h-full`}>
+        <div className="flex justify-between items-start mb-6">
+            {/* අයිකනය */}
+            <div className={`p-3 rounded-2xl ${color} shrink-0`}>
+                {icon}
+            </div>
+            {/* දකුණු පැත්තේ තියෙන පොඩි ලේබලය (Trend/Name) */}
+            <span className="text-[10px] font-black px-2 py-1 bg-white/60 backdrop-blur-sm rounded-lg text-slate-600 uppercase tracking-wider shadow-sm max-w-[120px] truncate">
+                {trend}
+            </span>
         </div>
-        <h4 className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">{label}</h4>
-        <p className="text-xl md:text-2xl font-black text-slate-800 mt-1">{value}</p>
+        
+        <div className="text-left">
+            <h4 className="text-slate-500 text-[10px] font-bold uppercase tracking-widest leading-none mb-2">
+                {label}
+            </h4>
+            <p className="text-xl md:text-2xl font-black text-slate-800 leading-none">
+                {value}
+            </p>
+        </div>
     </div>
 );
 
