@@ -4,7 +4,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage'; 
 import Dashboard from './pages/Dashboard'; 
 import ReportsPage from './pages/ReportsPage';
-import SuperAdminDashboard from './pages/SuperAdminDashboard'; 
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/reports" element={<ReportsPage />} /> 
-        <Route path="/super-admin" element={<SuperAdminDashboard />} />
+        <Route path="/super-admin-portal-ssk" element={<SuperAdminDashboard />} />
       </Routes>
     </Router>
   );

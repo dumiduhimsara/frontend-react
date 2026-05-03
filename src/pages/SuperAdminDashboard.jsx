@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Users, ShieldAlert, CheckCircle, Lock, Unlock, RefreshCw, Shop } from 'lucide-react';
-
+import { Users, ShieldAlert, CheckCircle, Lock, Unlock, RefreshCw, Store } from "lucide-react";
 const SuperAdminDashboard = () => {
     const [merchants, setMerchants] = useState([]);
     const [loading, setLoading] = useState(true);
