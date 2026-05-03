@@ -240,7 +240,7 @@ const Dashboard = () => {
 
                     {/* ✅ 1. නියමිත දිනට ණය නොගෙවූ අය (Overdue) */}
                     {overdueCustomers.length > 0 && (
-                        <div className="bg-red-50 rounded-[32px] p-6 border border-red-100 mb-8 text-left">
+                        <div className="bg-red-100/50 rounded-[32px] p-6 border border-red-100 mb-8 text-left">
                             <div className="flex items-center gap-3 mb-6 text-red-600">
                                 <AlertCircle size={20} />
                                 <h3 className="text-xl font-black italic">නියමිත දිනට ණය නොගෙවූ අය</h3>
@@ -270,7 +270,7 @@ const Dashboard = () => {
                     )}
 
                     {/* ✅ 2. ළඟදී ණය ගෙවිය යුතු අය (Upcoming) */}
-                    <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-8 text-left">
+                    <div className="bg-orange-100/50 rounded-[32px] p-6 border border-orange-100 shadow-sm mb-8 text-left">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-orange-50 text-orange-600 rounded-xl"><Bell size={20} /></div>
                             <h3 className="text-xl font-black text-slate-800">ළඟදී ණය ගෙවිය යුතු අය (ඉදිරි දින 2)</h3>
@@ -307,7 +307,7 @@ const Dashboard = () => {
                     </div>
 
                     {/* Top 5 Debtors List */}
-                    <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-8 text-left">
+                    <div className="bg-red-100/50 rounded-[32px] p-6 border border-red-200 mb-8 text-left shadow-sm">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-red-50 text-red-600 rounded-xl"><TrendingUp size={20} /></div>
                             <h3 className="text-xl font-black text-slate-800">වැඩිම ණය ඇති අය (Top 5)</h3>
