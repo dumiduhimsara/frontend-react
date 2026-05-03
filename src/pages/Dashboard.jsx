@@ -204,7 +204,8 @@ const Dashboard = () => {
 
                 <div className="p-4 md:p-8 pb-10">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8 items-stretch text-left">
+                       {/* Laptop එකේදී ඉඩ මදි නම් Card 2ක් පේන්නත්, ලොකු Screen එකකදී Card 3ක් පේන්නත් responsive grid එක මෙහෙම හදමු */}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-stretch text-left">
     {/* 1. මුළු පාරිභෝගිකයින් */}
     <StatCard 
         icon={<Users size={24} className="text-blue-600" />} 
