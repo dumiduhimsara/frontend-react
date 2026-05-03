@@ -407,4 +407,4 @@ const StatCard = ({ icon, label, value, trend, color }) => (
     </div>
 );
 
-export default Dashboard;
+export default Dashboard;  
