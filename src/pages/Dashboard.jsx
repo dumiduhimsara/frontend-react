@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import AddCustomerModal from '../components/AddCustomerModal';
 import CustomerDetailsModal from '../components/CustomerDetailsModal'; 
 import { 
-  LayoutDashboard, Users, Package, ShoppingCart, Settings, 
-  LogOut, TrendingUp, UserPlus, Menu, X, PlusCircle, MinusCircle, Phone, AlertCircle,
-  Bell, MessageCircle, PhoneOutgoing
+  LayoutDashboard, Users, TrendingUp, Menu, X, PlusCircle, 
+  MinusCircle, Phone, AlertCircle, Bell, MessageCircle, 
+  PhoneOutgoing, LogOut, FileText
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const location = useLocation(); // දැනට ඉන්න පිටුව දැනගැනීමට
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [customers, setCustomers] = useState([]); 
@@ -62,7 +63,6 @@ const Dashboard = () => {
         }
     };
 
-    // ✅ විසඳුම: මතක් කිරීමේ තත්ත්වය Database එකට යවන function එක
     const updateReminderStatus = async (customerId, type) => {
         try {
             const todayStr = new Date().toISOString().split('T')[0];
@@ -70,43 +70,36 @@ const Dashboard = () => {
                 lastRemindedDate: todayStr,
                 lastRemindedType: type
             });
-            fetchCustomers(); // දත්ත නැවත ලබාගෙන UI එක refresh කරයි
+            fetchCustomers(); 
         } catch (err) {
             console.error("Reminder sync error:", err);
         }
     };
 
-  // WhatsApp පණිවිඩය යැවීම
-  const sendWhatsApp = (c, type) => {
-    const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
-    
-    // ලිස්ට් එකේ වර්ගය අනුව මැසේජ් එක තෝරා ගැනීම
-    let message = "";
-    if (type === 'upcoming') {
-      message = `ආයුබෝවන් ${c.name}, ${shopName} වෙත ඔබ ගෙවීමට ඇති රු. ${Math.abs(c.debtAmount).toFixed(2)} ක ණය මුදල ${dateStr} දිනට පෙර ගෙවන ලෙස කාරුණිකව මතක් කරමු. ස්තූතියි!`;
-    } else {
-      message = `ආයුබෝවන් ${c.name}, ${shopName} වෙත ඔබ ${dateStr} දින ගෙවීමට පොරොන්දු වූ රු. ${Math.abs(c.debtAmount).toFixed(2)} ක ණය මුදල මෙතෙක් ගෙවා නැත. කරුණාකර එය කඩිනමින් පියවීමට කටයුතු කරන්න. ස්තූතියි!`;
-    }
+    const sendWhatsApp = (c, type) => {
+        const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
+        let message = "";
+        if (type === 'upcoming') {
+            message = `ආයුබෝවන් ${c.name}, ${shopName} වෙත ඔබ ගෙවීමට ඇති රු. ${Math.abs(c.debtAmount).toFixed(2)} ක ණය මුදල ${dateStr} දිනට පෙර ගෙවන ලෙස කාරුණිකව මතක් කරමු. ස්තූතියි!`;
+        } else {
+            message = `ආයුබෝවන් ${c.name}, ${shopName} වෙත ඔබ ${dateStr} දින ගෙවීමට පොරොන්දු වූ රු. ${Math.abs(c.debtAmount).toFixed(2)} ක ණය මුදල මෙතෙක් ගෙවා නැත. කරුණාකර එය කඩිනමින් පියවීමට කටයුතු කරන්න. ස්තූතියි!`;
+        }
+        const url = `https://wa.me/94${c.phone.substring(1)}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+        updateReminderStatus(c._id, type);
+    };
 
-    const url = `https://wa.me/94${c.phone.substring(1)}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
-    updateReminderStatus(c._id, type); // Database එක update කරයි
-  };
-
-  // සාමාන්‍ය SMS පණිවිඩය යැවීම
-  const sendSMS = (c, type) => {
-    const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
-    
-    let message = "";
-    if (type === 'upcoming') {
-      message = `Ayubowan ${c.name}, ${shopName} naya Rs. ${Math.abs(c.debtAmount).toFixed(2)} labana ${dateStr} dinata pera gewana lesa mathak karamu. Sthuthiy!`;
-    } else {
-      message = `Ayubowan ${c.name}, ${shopName} naya Rs. ${Math.abs(c.debtAmount).toFixed(2)} ${dateStr} dina gewimata thibu naya mudala ada dakkwa gewa natha. Karunakar ey kandinamin piyanwanna. Sthuthiy!`;
-    }
-
-    window.location.href = `sms:+94${c.phone.substring(1)}?body=${encodeURIComponent(message)}`;
-    updateReminderStatus(c._id, type); // Database එක update කරයි
-  };
+    const sendSMS = (c, type) => {
+        const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
+        let message = "";
+        if (type === 'upcoming') {
+            message = `Ayubowan ${c.name}, ${shopName} naya Rs. ${Math.abs(c.debtAmount).toFixed(2)} labana ${dateStr} dinata pera gewana lesa mathak karamu. Sthuthiy!`;
+        } else {
+            message = `Ayubowan ${c.name}, ${shopName} naya Rs. ${Math.abs(c.debtAmount).toFixed(2)} ${dateStr} dina gewimata thibu naya mudala ada dakkwa gewa natha. Karunakar ey kandinamin piyanwanna. Sthuthiy!`;
+        }
+        window.location.href = `sms:+94${c.phone.substring(1)}?body=${encodeURIComponent(message)}`;
+        updateReminderStatus(c._id, type);
+    };
 
     const handleDeleteCustomer = async (id) => {
         if (window.confirm("ඔබට විශ්වාසද මෙම පාරිභෝගිකයා ඉවත් කළ යුතු බව?")) {
@@ -135,40 +128,35 @@ const Dashboard = () => {
     useEffect(() => {
         if (merchantId) fetchCustomers();
     }, [merchantId]);
-const handleUpdateDebt = async (id, type) => {
-    if (!updateAmount || isNaN(updateAmount)) return alert("කරුණාකර නිවැරදි මුදලක් ඇතුළත් කරන්න.");
-    
-    // ✅ වැඩේ පටන් ගන්නකොට Loading state එක true කරනවා
-    setIsUpdating(true); 
-    
-    try {
-        const res = await axios.put(`${apiUrl}/update-debt/${id}`, {
-            amount: updateAmount,
-            type: type,
-            dueDate: dueDate
-        });
-        
-        if (res.status === 200) {
-            alert(res.data.message);
-            setUpdateAmount('');
-            setDueDate('');
-            setSelectedCustomer(null);
-            fetchCustomers(); 
+
+    const handleUpdateDebt = async (id, type) => {
+        if (!updateAmount || isNaN(updateAmount)) return alert("කරුණාකර නිවැරදි මුදලක් ඇතුළත් කරන්න.");
+        setIsUpdating(true); 
+        try {
+            const res = await axios.put(`${apiUrl}/update-debt/${id}`, {
+                amount: updateAmount,
+                type: type,
+                dueDate: dueDate
+            });
+            if (res.status === 200) {
+                alert(res.data.message);
+                setUpdateAmount('');
+                setDueDate('');
+                setSelectedCustomer(null);
+                fetchCustomers(); 
+            }
+        } catch (err) {
+            alert("Error updating debt");
+        } finally {
+            setIsUpdating(false); 
         }
-    } catch (err) {
-        alert("Error updating debt");
-    } finally {
-        // ✅ වැඩේ සාර්ථක වුණත් වැරදුණත් බටන් එක ආයෙ වැඩ කරන තත්ත්වයට පත් කරනවා
-        setIsUpdating(false); 
-    }
-};
+    };
 
     const handleLogout = () => {
         localStorage.clear();
         navigate('/');
     };
 
-    // පරීක්ෂා කිරීමේ function එක (UI එකේ පෙන්විය යුත්තේ "මතක් කළා" ද නැද්ද යන්න)
     const isAlreadyReminded = (customer, listType) => {
         const todayStr = new Date().toISOString().split('T')[0];
         return customer.lastRemindedDate === todayStr && customer.lastRemindedType === listType;
@@ -176,6 +164,7 @@ const handleUpdateDebt = async (id, type) => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex overflow-hidden">
+            {/* ✅ පිරිසිදු කරන ලද Sidebar */}
             <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-blue-950 text-white transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:relative md:translate-x-0 md:flex`}>
                 <div className="p-6 flex justify-between items-center">
                     <div>
@@ -184,15 +173,26 @@ const handleUpdateDebt = async (id, type) => {
                     </div>
                     <button className="md:hidden p-1 hover:bg-white/10 rounded-lg" onClick={() => setIsSidebarOpen(false)}><X size={24} /></button>
                 </div>
+                
                 <nav className="flex-1 px-4 space-y-2 mt-4">
-                    <NavItem icon={<LayoutDashboard size={20}/>} label="Dashboard" active />
-                    <NavItem icon={<Users size={20}/>} label="Customers" />
-                    <NavItem icon={<Package size={20}/>} label="Products" />
-                    <NavItem icon={<ShoppingCart size={20}/>} label="Orders" />
-                    <NavItem icon={<Settings size={20}/>} label="Settings" />
+                    <NavItem 
+                        icon={<LayoutDashboard size={20}/>} 
+                        label="පාලන පුවරුව" 
+                        active={location.pathname === '/dashboard'} 
+                        onClick={() => navigate('/dashboard')} 
+                    />
+                    <NavItem 
+                        icon={<FileText size={20}/>} 
+                        label="ගනුදෙනු වාර්තා" 
+                        active={location.pathname === '/reports'} 
+                        onClick={() => navigate('/reports')} 
+                    />
                 </nav>
+
                 <div className="p-4 border-t border-white/10">
-                    <button onClick={handleLogout} className="flex items-center space-x-3 w-full p-3 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all text-sm font-bold"><LogOut size={20} /><span>Log Out</span></button>
+                    <button onClick={handleLogout} className="flex items-center space-x-3 w-full p-3 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all text-sm font-bold">
+                        <LogOut size={20} /><span>Log Out</span>
+                    </button>
                 </div>
             </aside>
 
@@ -211,42 +211,33 @@ const handleUpdateDebt = async (id, type) => {
                 </header>
 
                 <div className="p-4 md:p-8 pb-10">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-                       {/* Laptop එකේදී ඉඩ මදි නම් Card 2ක් පේන්නත්, ලොකු Screen එකකදී Card 3ක් පේන්නත් responsive grid එක මෙහෙම හදමු */}
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-stretch text-left">
-    {/* 1. මුළු පාරිභෝගිකයින් */}
-    <StatCard 
-        icon={<Users size={24} className="text-blue-600" />} 
-        label="මුළු පාරිභෝගිකයින්" 
-        value={customers.length} 
-        trend="+0%" 
-        color="bg-blue-500/60" 
-        bgColor="bg-blue-200" 
-    />
-    
-    {/* 2. වැඩිම ණය ඇති පාරිභෝගිකයා */}
-    <StatCard 
-        icon={<AlertCircle size={24} className="text-red-600" />} 
-        label="වැඩිම ණය ඇති පාරිභෝගිකයා" 
-        value={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? `Rs. ${topDebtors[0].debtAmount.toFixed(2)}` : "Rs. 0.00"} 
-        trend={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? topDebtors[0].name : "N/A"} 
-        color="bg-red-500/60" 
-        bgColor="bg-red-200" 
-    />
-
-    {/* 3. මුළු ණය මුදල */}
-    <StatCard 
-        icon={<TrendingUp size={24} className="text-emerald-600" />} 
-        label="මුළු ණය මුදල (Total)" 
-        value={`Rs. ${totalDebt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
-        trend="ලැබීමට ඇති" 
-        color="bg-emerald-500/60" 
-        bgColor="bg-emerald-200" 
-    />
-</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-stretch text-left">
+                        <StatCard 
+                            icon={<Users size={24} className="text-blue-600" />} 
+                            label="මුළු පාරිභෝගිකයින්" 
+                            value={customers.length} 
+                            trend="+0%" 
+                            color="bg-blue-500/60" 
+                            bgColor="bg-blue-200" 
+                        />
+                        <StatCard 
+                            icon={<AlertCircle size={24} className="text-red-600" />} 
+                            label="වැඩිම ණය ඇති පාරිභෝගිකයා" 
+                            value={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? `Rs. ${topDebtors[0].debtAmount.toFixed(2)}` : "Rs. 0.00"} 
+                            trend={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? topDebtors[0].name : "N/A"} 
+                            color="bg-red-500/60" 
+                            bgColor="bg-red-200" 
+                        />
+                        <StatCard 
+                            icon={<TrendingUp size={24} className="text-emerald-600" />} 
+                            label="මුළු ණය මුදල (Total)" 
+                            value={`Rs. ${totalDebt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
+                            trend="ලැබීමට ඇති" 
+                            color="bg-emerald-500/60" 
+                            bgColor="bg-emerald-200" 
+                        />
                     </div>
 
-                    {/* ✅ 1. නියමිත දිනට ණය නොගෙවූ අය (Overdue) */}
                     {overdueCustomers.length > 0 && (
                         <div className="bg-red-100/50 rounded-[32px] p-6 border border-red-100 mb-8 text-left">
                             <div className="flex items-center gap-3 mb-6 text-red-600">
@@ -263,7 +254,7 @@ const handleUpdateDebt = async (id, type) => {
                                         </div>
                                         <div className="flex gap-2">
                                             {isAlreadyReminded(c, 'overdue') ? (
-                                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl flex items-center gap-1 animate-in zoom-in">මතක් කළා ✅</span>
+                                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl flex items-center gap-1">මතක් කළා ✅</span>
                                             ) : (
                                                 <>
                                                     <button onClick={() => sendWhatsApp(c, 'overdue')} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all active:scale-90"><MessageCircle size={18} /></button>
@@ -277,7 +268,6 @@ const handleUpdateDebt = async (id, type) => {
                         </div>
                     )}
 
-                    {/* ✅ 2. ළඟදී ණය ගෙවිය යුතු අය (Upcoming) */}
                     <div className="bg-orange-100/50 rounded-[32px] p-6 border border-orange-100 shadow-sm mb-8 text-left">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-orange-50 text-orange-600 rounded-xl"><Bell size={20} /></div>
@@ -294,12 +284,12 @@ const handleUpdateDebt = async (id, type) => {
                                             <div>
                                                 <p className="font-bold text-slate-700 text-sm">{c.name}</p>
                                                 <p className="text-[10px] text-orange-600 font-black uppercase tracking-wider mt-0.5">
-                                                   {diffDays === 0 ? "අද දින ගෙවිය යුතුයි" : `තව දින ${diffDays} කින් ගෙවිය යුතුයි`}
+                                                    {diffDays === 0 ? "අද දින ගෙවිය යුතුයි" : `තව දින ${diffDays} කින් ගෙවිය යුතුයි`}
                                                 </p>
                                             </div>
                                             <div className="flex gap-2">
                                                 {isAlreadyReminded(c, 'upcoming') ? (
-                                                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl flex items-center gap-1 animate-in zoom-in">මතක් කළා ✅</span>
+                                                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl flex items-center gap-1">මතක් කළා ✅</span>
                                                 ) : (
                                                     <>
                                                         <button onClick={() => sendWhatsApp(c, 'upcoming')} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all active:scale-90"><MessageCircle size={18} /></button>
@@ -314,7 +304,6 @@ const handleUpdateDebt = async (id, type) => {
                         </div>
                     </div>
 
-                    {/* Top 5 Debtors List */}
                     <div className="bg-red-100/50 rounded-[32px] p-6 border border-red-200 mb-8 text-left shadow-sm">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-red-50 text-red-600 rounded-xl"><TrendingUp size={20} /></div>
@@ -340,7 +329,6 @@ const handleUpdateDebt = async (id, type) => {
                         </div>
                     </div>
 
-                    {/* Customer List Header */}
                     <div className="flex justify-between items-center mb-4 text-left">
                         <h3 className="text-xl font-black text-slate-800">පාරිභෝගික ලැයිස්තුව</h3>
                         <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-md active:scale-95"><PlusCircle size={18} /> අලුත් කෙනෙක්</button>
@@ -356,24 +344,18 @@ const handleUpdateDebt = async (id, type) => {
                         />
                     </div>
 
-                    {/* Customer Cards Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {customers.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.phone.includes(searchTerm)).map((customer) => (
                             <div key={customer._id} className="relative bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all text-left group">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="h-12 w-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-600 font-bold text-lg">{customer.name[0]}</div>
                                     <div className="text-right">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">
-                                            {customer.debtAmount < 0 ? 'කඩේ ගාව ඇති මුදල' : 'දැනට ණය මුදල'}
-                                        </p>
-                                        <p className={`text-xl font-black ${customer.debtAmount > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                                            Rs. {Math.abs(customer.debtAmount).toFixed(2)}
-                                        </p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">{customer.debtAmount < 0 ? 'කඩේ ගාව ඇති මුදල' : 'දැනට ණය මුදල'}</p>
+                                        <p className={`text-xl font-black ${customer.debtAmount > 0 ? 'text-red-600' : 'text-emerald-600'}`}>Rs. {Math.abs(customer.debtAmount).toFixed(2)}</p>
                                     </div>
                                 </div>
                                 <h4 className="text-lg font-black text-slate-800 leading-tight">{customer.name}</h4>
                                 <div className="flex items-center text-slate-500 text-sm mt-1 mb-4 gap-1"><Phone size={14} /> {customer.phone}</div>
-                                
                                 <div className="grid grid-cols-2 gap-2">
                                     <button onClick={() => { setSelectedCustomer(customer); setUpdateAmount('0'); }} className="py-3 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all active:scale-95">ණය Update</button>
                                     <button onClick={() => { setSelectedCustomer(customer); setUpdateAmount(''); fetchHistory(customer._id); }} className="py-3 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all active:scale-95">විස්තර බලන්න</button>
@@ -413,34 +395,21 @@ const handleUpdateDebt = async (id, type) => {
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
-    {/* 1. ඇඩ් කරන්න බටන් එක */}
-    <button 
-        onClick={() => handleUpdateDebt(selectedCustomer._id, 'add')} 
-        disabled={isUpdating} // ✅ Request එක යන වෙලාවට බටන් එක ඔබන්න බැරි වෙන්න Disable කරනවා
-        className={`flex items-center justify-center gap-2 py-4 bg-red-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-red-600/20 
-            ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700 active:scale-95'}`}
-    >
-        {isUpdating ? (
-            <span className="flex items-center gap-2 italic">මොහොතක් ඉන්න...</span>
-        ) : (
-            <><PlusCircle size={18} /> ඇඩ් කරන්න</>
-        )}
-    </button>
-
-    {/* 2. පියවන්න බටන් එක */}
-    <button 
-        onClick={() => handleUpdateDebt(selectedCustomer._id, 'settle')} 
-        disabled={isUpdating} // ✅ Request එක යන වෙලාවට බටන් එක ඔබන්න බැරි වෙන්න Disable කරනවා
-        className={`flex items-center justify-center gap-2 py-4 bg-emerald-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-600/20 
-            ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-700 active:scale-95'}`}
-    >
-        {isUpdating ? (
-            <span className="flex items-center gap-2 italic">මොහොතක් ඉන්න...</span>
-        ) : (
-            <><MinusCircle size={18} /> පියවන්න</>
-        )}
-    </button>
-</div>
+                            <button 
+                                onClick={() => handleUpdateDebt(selectedCustomer._id, 'add')} 
+                                disabled={isUpdating} 
+                                className={`flex items-center justify-center gap-2 py-4 bg-red-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-red-600/20 ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700 active:scale-95'}`}
+                            >
+                                {isUpdating ? <span className="flex items-center gap-2 italic">මොහොතක් ඉන්න...</span> : <><PlusCircle size={18} /> ඇඩ් කරන්න</>}
+                            </button>
+                            <button 
+                                onClick={() => handleUpdateDebt(selectedCustomer._id, 'settle')} 
+                                disabled={isUpdating} 
+                                className={`flex items-center justify-center gap-2 py-4 bg-emerald-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-600/20 ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-700 active:scale-95'}`}
+                            >
+                                {isUpdating ? <span className="flex items-center gap-2 italic">මොහොතක් ඉන්න...</span> : <><MinusCircle size={18} /> පියවන්න</>}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -451,8 +420,12 @@ const handleUpdateDebt = async (id, type) => {
     );
 };
 
-const NavItem = ({ icon, label, active = false }) => (
-    <div className={`flex items-center space-x-3 p-3 rounded-xl cursor-pointer transition-all ${active ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+// NavItem component ඇතුළත onClick සම්බන්ධ කළා
+const NavItem = ({ icon, label, active = false, onClick }) => (
+    <div 
+        onClick={onClick}
+        className={`flex items-center space-x-3 p-3 rounded-xl cursor-pointer transition-all ${active ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+    >
         {icon}
         <span className="text-sm font-bold">{label}</span>
     </div>
@@ -461,21 +434,12 @@ const NavItem = ({ icon, label, active = false }) => (
 const StatCard = ({ icon, label, value, trend, color, bgColor }) => (
     <div className={`${bgColor} p-6 rounded-[32px] border border-slate-100 shadow-sm transition-all hover:scale-[1.02] flex flex-col justify-between h-full w-full min-h-[180px]`}>
         <div className="flex justify-between items-start mb-6 gap-2">
-            <div className={`p-3 rounded-2xl ${color} shrink-0`}>
-                {icon}
-            </div>
-            <span className="text-[10px] font-black px-2.5 py-1.5 bg-white/60 backdrop-blur-md rounded-xl text-slate-600 uppercase tracking-wider shadow-sm max-w-[120px] truncate">
-                {trend}
-            </span>
+            <div className={`p-3 rounded-2xl ${color} shrink-0`}>{icon}</div>
+            <span className="text-[10px] font-black px-2.5 py-1.5 bg-white/60 backdrop-blur-md rounded-xl text-slate-600 uppercase tracking-wider shadow-sm max-w-[120px] truncate">{trend}</span>
         </div>
-        
         <div className="text-left mt-auto">
-            <h4 className="text-slate-500 text-[10px] font-bold uppercase tracking-widest leading-none mb-2">
-                {label}
-            </h4>
-            <p className="text-xl md:text-2xl font-black text-slate-800 leading-tight break-words">
-                {value}
-            </p>
+            <h4 className="text-slate-500 text-[10px] font-bold uppercase tracking-widest leading-none mb-2">{label}</h4>
+            <p className="text-xl md:text-2xl font-black text-slate-800 leading-tight break-words">{value}</p>
         </div>
     </div>
 );
