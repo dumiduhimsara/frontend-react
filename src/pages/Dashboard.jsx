@@ -50,6 +50,8 @@ const Dashboard = () => {
         return customerDueDate < today;
     });
 
+    const totalDebt = customers.reduce((acc, curr) => acc + (curr.debtAmount > 0 ? curr.debtAmount : 0), 0);
+
     const fetchHistory = async (customerId) => {
         try {
             const res = await axios.get(`${apiUrl}/get-history/${customerId}`);
@@ -210,7 +212,13 @@ const Dashboard = () => {
                             trend={topDebtors.length > 0 && topDebtors[0].debtAmount > 0 ? topDebtors[0].name : "N/A"} 
                             color="bg-red-50" 
                         />
-                        <StatCard icon={<TrendingUp className="text-emerald-600" />} label="අද විකුණුම්" value="Rs. 0.00" trend="+0%" color="bg-emerald-50" />
+                        <StatCard 
+                            icon={<TrendingUp className="text-emerald-600" />} 
+                            label="මුළු ණය මුදල (Total)" 
+                            value={`Rs. ${totalDebt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
+                            trend="ලැබීමට ඇති" 
+                            color="bg-emerald-50" 
+                        />
                     </div>
 
                     {/* ✅ 1. නියමිත දිනට ණය නොගෙවූ අය (Overdue) */}
