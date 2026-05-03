@@ -73,22 +73,37 @@ const Dashboard = () => {
         }
     };
 
-    // WhatsApp පණිවිඩය යැවීම
-    const sendWhatsApp = (c, type) => {
-        const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
-        const message = `ආයුබෝවන් ${c.name}, ${shopName} වෙත ඔබ ගෙවීමට ඇති රු. ${Math.abs(c.debtAmount).toFixed(2)} ක ණය මුදල ${dateStr} දිනට පෙර ගෙවන ලෙස කාරුණිකව මතක් කරමු. ස්තූතියි!`;
-        const url = `https://wa.me/94${c.phone.substring(1)}?text=${encodeURIComponent(message)}`;
-        window.open(url, '_blank');
-        updateReminderStatus(c._id, type); // ✅ Database එක update කරයි
-    };
+  // WhatsApp පණිවිඩය යැවීම
+  const sendWhatsApp = (c, type) => {
+    const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
+    
+    // ලිස්ට් එකේ වර්ගය අනුව මැසේජ් එක තෝරා ගැනීම
+    let message = "";
+    if (type === 'upcoming') {
+      message = `ආයුබෝවන් ${c.name}, ${shopName} වෙත ඔබ ගෙවීමට ඇති රු. ${Math.abs(c.debtAmount).toFixed(2)} ක ණය මුදල ${dateStr} දිනට පෙර ගෙවන ලෙස කාරුණිකව මතක් කරමු. ස්තූතියි!`;
+    } else {
+      message = `ආයුබෝවන් ${c.name}, ${shopName} වෙත ඔබ ${dateStr} දින ගෙවීමට පොරොන්දු වූ රු. ${Math.abs(c.debtAmount).toFixed(2)} ක ණය මුදල මෙතෙක් ගෙවා නැත. කරුණාකර එය කඩිනමින් පියවීමට කටයුතු කරන්න. ස්තූතියි!`;
+    }
 
-    // සාමාන්‍ය SMS පණිවිඩය යැවීම
-    const sendSMS = (c, type) => {
-        const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
-        const message = `Ayubowan ${c.name}, ${shopName} naya mudala Rs. ${Math.abs(c.debtAmount).toFixed(2)} labana ${dateStr} dinata pera gewana lesa mathak karamu. Sthuthiy!`;
-        window.location.href = `sms:+94${c.phone.substring(1)}?body=${encodeURIComponent(message)}`;
-        updateReminderStatus(c._id, type); // ✅ Database එක update කරයි
-    };
+    const url = `https://wa.me/94${c.phone.substring(1)}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+    updateReminderStatus(c._id, type); // Database එක update කරයි
+  };
+
+  // සාමාන්‍ය SMS පණිවිඩය යැවීම
+  const sendSMS = (c, type) => {
+    const dateStr = new Date(c.dueDate).toLocaleDateString('en-GB');
+    
+    let message = "";
+    if (type === 'upcoming') {
+      message = `Ayubowan ${c.name}, ${shopName} naya Rs. ${Math.abs(c.debtAmount).toFixed(2)} labana ${dateStr} dinata pera gewana lesa mathak karamu. Sthuthiy!`;
+    } else {
+      message = `Ayubowan ${c.name}, ${shopName} naya Rs. ${Math.abs(c.debtAmount).toFixed(2)} ${dateStr} dina gewimata thibu naya mudala ada dakkwa gewa natha. Karunakar ey kandinamin piyanwanna. Sthuthiy!`;
+    }
+
+    window.location.href = `sms:+94${c.phone.substring(1)}?body=${encodeURIComponent(message)}`;
+    updateReminderStatus(c._id, type); // Database එක update කරයි
+  };
 
     const handleDeleteCustomer = async (id) => {
         if (window.confirm("ඔබට විශ්වාසද මෙම පාරිභෝගිකයා ඉවත් කළ යුතු බව?")) {
