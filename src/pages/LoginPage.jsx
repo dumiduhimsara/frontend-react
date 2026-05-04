@@ -3,44 +3,45 @@ import { Phone, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; 
 import bgImage from '../assets/bg.webp';
-import AccessDenied from './AccessDenied'; // ✅ AccessDenied import කරලා තියෙන්නේ
+import AccessDenied from './AccessDenied';
 
 const LoginPage = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [authError, setAuthError] = useState(null); // ✅ පියවර 1: Error එක තියාගන්න state එක
+  const [authError, setAuthError] = useState(null);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setAuthError(null); // අලුතින් ලොගින් වෙද්දී පරණ errors අයින් කරනවා
+    setAuthError(null);
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL;
       const res = await axios.post(`${apiUrl}/login-shop`, { phone, password });
 
       if (res.status === 200) {
+        // ✅ දත්ත localStorage එකේ සේව් කිරීම
         localStorage.setItem("merchantId", res.data.merchant.id);
         localStorage.setItem("merchantName", res.data.merchant.ownerName);
         localStorage.setItem("shopName", res.data.merchant.shopName);
+        
+        // 🚨 මේක තමයි අලුත් පේළිය - Dashboard එකේ warning එකට මේක ඕනෙමයි
+        localStorage.setItem("expiryDate", res.data.merchant.expiryDate); 
+
         navigate('/dashboard'); 
       }
     } catch (err) {
-      // ✅ පියවර 2: Backend එකෙන් එන විශේෂ Status Codes අල්ලගන්න තැන
       if (err.response) {
         const status = err.response.status;
         const message = err.response.data.message;
 
         if (status === 402) {
-          // සේවා කාලය අවසන් (Expired)
           setAuthError({ type: 'expired', message: message });
         } else if (status === 403) {
-          // ගිණුම අත්හිටුවා ඇත (Blocked)
           setAuthError({ type: 'blocked', message: message });
         } else {
-          // වෙනත් සාමාන්‍ය වැරදි (වැරදි password වගේ)
           alert(message || "Login අසාර්ථකයි. නැවත උත්සාහ කරන්න.");
         }
       } else {
@@ -51,7 +52,6 @@ const LoginPage = () => {
     }
   };
 
-  // ✅ පියවර 3: ලොක් ස්ක්‍රීන් එක පෙන්විය යුතු නම් එය මෙතැනදී සිදු වේ
   if (authError) {
     return <AccessDenied type={authError.type} message={authError.message} />;
   }
