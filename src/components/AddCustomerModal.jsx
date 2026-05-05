@@ -10,8 +10,9 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
         address: '',
         initialDebt: 0 
     });
+    const [isSaving, setIsSaving] = useState(false);
 
-    // ✅ 1. notifyMethod එක මෙතන අනිවාර්යයෙන්ම තියෙන්න ඕනේ (කලින් කෝඩ් එකේ මේක අඩුවෙලා තිබුණා)
+    // ✅ 1. notifyMethod එක මෙතන අනිවාර්යයෙන්ම තියෙන්න ඕනේ
     const [notifyMethod, setNotifyMethod] = useState('whatsapp');
 
     // ✅ 2. handleNotification function එක
@@ -76,6 +77,9 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
 
     const handleAddCustomer = async (e) => {
         e.preventDefault();
+        if (isSaving) return; // ✅ දැනටමත් සේව් වෙනවා නම් ආයේ කරන්න දෙන්න එපා
+
+        setIsSaving(true); // ✅ සේව් කිරීම පටන් ගත්තා
         try {
             const merchantId = localStorage.getItem("merchantId");
             const apiUrl = import.meta.env.VITE_API_URL;
@@ -96,7 +100,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
             if (res.status === 201) {
                 alert("පාරිභෝගිකයා සාර්ථකව ඇතුළත් කළා! ✅");
                 
-                // ✅ 3. මෙතන notifyMethod එක හරියට පාස් කරනවා
+                // ✅ notifyMethod එක පාස් කරනවා
                 handleNotification({ name: customerData.name, phone: customerData.phone }, notifyMethod);
 
                 setCustomerData({ name: '', phone: '', address: '', initialDebt: 0 });
@@ -105,6 +109,8 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
         } catch (err) {
             console.error("Error detailing:", err.response?.data);
             alert(err.response?.data?.message || "ඇතුළත් කිරීම අසාර්ථකයි.");
+        } finally {
+            setIsSaving(false); // ✅ වැඩේ ඉවර වුණාම බටන් එක ආයෙත් Normal තත්ත්වයට පත් කරනවා
         }
     };
 
@@ -195,9 +201,16 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
 
                     <button 
                         type="submit"
-                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg mt-4 transition-all active:scale-95"
+                        disabled={isSaving}
+                        className={`w-full py-4 text-white font-bold rounded-2xl shadow-lg mt-4 transition-all active:scale-95 ${isSaving ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                     >
-                        දත්ත සුරකින්න
+                        {isSaving ? (
+                            <span className="flex items-center justify-center gap-2 italic">
+                                සුරකිමින් පවතී...
+                            </span>
+                        ) : (
+                            "දත්ත සුරකින්න"
+                        )}
                     </button>
                 </form>
             </div>
