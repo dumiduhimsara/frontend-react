@@ -21,33 +21,51 @@ const Dashboard = () => {
     const [history, setHistory] = useState([]); 
     const [dueDate, setDueDate] = useState(''); 
     const [isUpdating, setIsUpdating] = useState(false);
-    const [expiryWarning, setExpiryWarning] = useState(null); // ✅ අලුතින් එක් කළ state එක
-
-useEffect(() => {
-    const checkExpiry = () => {
-        const expiryDateStr = localStorage.getItem("expiryDate");
-        if (!expiryDateStr) return;
-
-        const expiryDate = new Date(expiryDateStr);
-        const today = new Date();
-        
-        // දින ගණන අතර වෙනස බැලීම
-        const diffTime = expiryDate - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        // දින 3ක් හෝ ඊට අඩු නම් (හැබැයි 0ට වැඩි නම්) Warning එක පෙන්වන්න
-        if (diffDays > 0 && diffDays <= 3) {
-            setExpiryWarning(`ඔබේ ගිණුම තව දින ${diffDays} කින් අවසන් වේ. කරුණාකර සහාය ලබාගෙන අලුත් කරගන්න.`);
-        }
-    };
-
-    checkExpiry();
-}, []);
+    const [expiryWarning, setExpiryWarning] = useState(null); 
 
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
     const merchantId = localStorage.getItem("merchantId");
     const apiUrl = import.meta.env.VITE_API_URL;
+
+    useEffect(() => {
+        // 1. ආරක්ෂක පියවර: merchantId එක නැත්නම් Dashboard එක පෙන්වන්න එපා
+        const storedMerchantId = localStorage.getItem("merchantId");
+        if (!storedMerchantId) {
+            navigate('/'); // කෙළින්ම Login Page එකට හරවා යවනවා
+            return;
+        }
+
+        // 2. මුදලාලි ලොගින් වෙලා ඉන්නවා නම් විතරක් පාරිභෝගික දත්ත ලබාගන්න
+        const fetchAllData = async () => {
+            try {
+                const res = await axios.get(`${apiUrl}/get-customers/${storedMerchantId}`);
+                setCustomers(res.data);
+            } catch (err) {
+                console.error("Error fetching customers:", err);
+            }
+        };
+        fetchAllData();
+
+        // 3. Expiry Warning එක චෙක් කරන ලොජික් එක
+        const checkExpiry = () => {
+            const expiryDateStr = localStorage.getItem("expiryDate");
+            if (!expiryDateStr) return;
+
+            const expiryDate = new Date(expiryDateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); 
+            
+            const diffTime = expiryDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays >= 0 && diffDays <= 3) {
+                setExpiryWarning(`ඔබේ ගිණුම තව දින ${diffDays} කින් අවසන් වේ. කරුණාකර සහාය ලබාගෙන අලුත් කරගන්න.`);
+            }
+        };
+
+        checkExpiry();
+    }, [navigate, apiUrl]);
 
     // --- ණය වැඩිම පාරිභෝගිකයින් 5 දෙනා ---
     const topDebtors = [...customers]
@@ -82,6 +100,15 @@ useEffect(() => {
             setHistory(res.data);
         } catch (err) {
             console.error("Error fetching history:", err);
+        }
+    };
+
+     const fetchCustomers = async () => {
+        try {
+            const res = await axios.get(`${apiUrl}/get-customers/${merchantId}`);
+            setCustomers(res.data);
+        } catch (err) {
+            console.error("Error fetching customers:", err);
         }
     };
 
@@ -138,19 +165,7 @@ useEffect(() => {
         }
     };
 
-    const fetchCustomers = async () => {
-        try {
-            const res = await axios.get(`${apiUrl}/get-customers/${merchantId}`);
-            setCustomers(res.data);
-        } catch (err) {
-            console.error("Error fetching customers:", err);
-        }
-    };
-
-    useEffect(() => {
-        if (merchantId) fetchCustomers();
-    }, [merchantId]);
-
+   
     const handleUpdateDebt = async (id, type) => {
         if (!updateAmount || isNaN(updateAmount)) return alert("කරුණාකර නිවැරදි මුදලක් ඇතුළත් කරන්න.");
         setIsUpdating(true); 
