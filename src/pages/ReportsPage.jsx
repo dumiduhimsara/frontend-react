@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // ✅ useEffect එක් කළා
 import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, TrendingUp, Menu, X, FileText, Download, Database } from 'lucide-react';
 import axios from 'axios';
@@ -29,7 +29,16 @@ const ReportsPage = () => {
     const merchantId = localStorage.getItem("merchantId");
     const apiUrl = import.meta.env.VITE_API_URL;
 
-    // --- 1. තෝරාගත් දින අතර වාර්තාව (කලින් තිබූ එක) ---
+    // ✅ පද්ධතියේ ආරක්ෂාව තහවුරු කිරීම (Security Check)
+    useEffect(() => {
+        const storedMerchantId = localStorage.getItem("merchantId");
+        if (!storedMerchantId) {
+            // ලොගින් වෙලා නැත්නම් කෙළින්ම Login පේජ් එකට යවනවා
+            navigate('/');
+        }
+    }, [navigate]);
+
+    // --- 1. කාලසීමාව අනුව වාර්තාව ---
     const handleGeneratePDF = async () => {
         if (!fromDate || !toDate) return alert("කරුණාකර දිනයන් තෝරන්න.");
         setIsGenerating(true);
@@ -69,11 +78,10 @@ const ReportsPage = () => {
         }
     };
 
-    // --- 2. Master Backup Report (ඔයා ඉල්ලපු අලුත් එක) ---
+    // --- 2. Master Backup Report ---
     const handleGenerateMasterPDF = async () => {
         setIsGeneratingMaster(true);
         try {
-            // Backend එකේ අපි සාදාගත් master endpoint එකට කෝල් කිරීම
             const res = await axios.get(`${apiUrl}/get-master-report/${merchantId}`);
             const allData = res.data;
 
@@ -91,13 +99,11 @@ const ReportsPage = () => {
             currentY += 15;
 
             allData.forEach((item, index) => {
-                // පිටුව ඉවර වුණොත් අලුත් පිටුවක් ඇඩ් කිරීම
                 if (currentY > 240) {
                     doc.addPage();
                     currentY = 20;
                 }
 
-                // පාරිභෝගිකයාගේ විස්තර (Header)
                 doc.setFontSize(13);
                 doc.setFont("helvetica", "bold");
                 doc.setTextColor(37, 99, 235);
@@ -109,7 +115,6 @@ const ReportsPage = () => {
                 currentY += 6;
                 doc.text(`Address: ${item.info.address || 'N/A'} | Current Balance: Rs. ${item.info.debtAmount.toFixed(2)}`, 14, currentY);
 
-                // පාරිභෝගිකයාගේ ගනුදෙනු වගුව
                 autoTable(doc, {
                     startY: currentY + 4,
                     head: [['Date', 'Type', 'Amount']],
@@ -124,7 +129,6 @@ const ReportsPage = () => {
                     styles: { fontSize: 8 }
                 });
 
-                // ඊළඟ පාරිභෝගිකයා සඳහා පරතරය තැබීම
                 currentY = doc.lastAutoTable.finalY + 15;
             });
 
@@ -177,7 +181,6 @@ const ReportsPage = () => {
                 </header>
 
                 <div className="p-4 md:p-8 space-y-8">
-                    {/* 1. Date Range Report Card */}
                     <div className="bg-white w-full max-w-2xl p-6 md:p-10 rounded-[32px] border border-slate-100 shadow-sm mx-auto">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="p-3 bg-blue-100 text-blue-600 rounded-2xl"><FileText size={24} /></div>
@@ -192,7 +195,6 @@ const ReportsPage = () => {
                         </button>
                     </div>
 
-                    {/* 2. Master Backup Card (ඔයා ඉල්ලපු කොටස) */}
                     <div className="bg-white w-full max-w-2xl p-6 md:p-10 rounded-[32px] border border-blue-100 shadow-sm mx-auto">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-3 bg-slate-900 text-white rounded-2xl"><Database size={24} /></div>
