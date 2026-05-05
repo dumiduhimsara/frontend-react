@@ -36,7 +36,7 @@ const SuperAdminDashboard = () => {
             // ✅ 2. සෙෂන් එකක් නැත්නම් විතරක් පාස්වර්ඩ් එක අහනවා
             const adminPass = prompt("Enter Super Admin Password:");
             
-            if (adminPass === "pakaya") {
+            if (adminPass === "chutiya") {
                 sessionStorage.setItem("adminAuthenticated", "true"); // Session එකේ සේව් කරනවා
                 setIsAuthenticated(true);
                 fetchMerchants();
