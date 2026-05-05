@@ -4,7 +4,7 @@ import CustomerDetailsModal from '../components/CustomerDetailsModal';
 import { 
   LayoutDashboard, Users, TrendingUp, Menu, X, PlusCircle, 
   MinusCircle, Phone, AlertCircle, Bell, MessageCircle, 
-  PhoneOutgoing, LogOut, FileText
+  PhoneOutgoing, LogOut, FileText, AlertTriangle
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -21,6 +21,28 @@ const Dashboard = () => {
     const [history, setHistory] = useState([]); 
     const [dueDate, setDueDate] = useState(''); 
     const [isUpdating, setIsUpdating] = useState(false);
+    const [expiryWarning, setExpiryWarning] = useState(null); // ✅ අලුතින් එක් කළ state එක
+
+useEffect(() => {
+    const checkExpiry = () => {
+        const expiryDateStr = localStorage.getItem("expiryDate");
+        if (!expiryDateStr) return;
+
+        const expiryDate = new Date(expiryDateStr);
+        const today = new Date();
+        
+        // දින ගණන අතර වෙනස බැලීම
+        const diffTime = expiryDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // දින 3ක් හෝ ඊට අඩු නම් (හැබැයි 0ට වැඩි නම්) Warning එක පෙන්වන්න
+        if (diffDays > 0 && diffDays <= 3) {
+            setExpiryWarning(`ඔබේ ගිණුම තව දින ${diffDays} කින් අවසන් වේ. කරුණාකර සහාය ලබාගෙන අලුත් කරගන්න.`);
+        }
+    };
+
+    checkExpiry();
+}, []);
 
     const merchantName = localStorage.getItem("merchantName") || "මුදලාලි";
     const shopName = localStorage.getItem("shopName") || "Smart Shop";
@@ -209,6 +231,13 @@ const Dashboard = () => {
                     </div>
                     <div className="h-10 w-10 md:h-12 md:w-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg md:text-xl shadow-lg">{merchantName[0]}</div>
                 </header>
+                {/* ✅ Expiry Warning Banner - මේ කෑල්ල මෙතනට ඇඩ් කරන්න */}
+    {expiryWarning && (
+        <div className="mx-4 md:mx-8 mt-4 bg-gradient-to-r from-orange-600 to-amber-500 text-white p-4 rounded-2xl flex items-center justify-center gap-3 font-bold shadow-lg animate-pulse z-20">
+            <AlertTriangle size={24} className="shrink-0" />
+            <span className="text-sm md:text-base leading-tight text-center">{expiryWarning}</span>
+        </div>
+    )}
 
                 <div className="p-4 md:p-8 pb-10">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-stretch text-left">
