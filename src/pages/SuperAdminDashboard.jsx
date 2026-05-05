@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // ✅ Redirect කිරීම සඳහා
-import { Users, ShieldAlert, CheckCircle, Lock, Unlock, RefreshCw, Store } from "lucide-react";
+import { Users, ShieldAlert, CheckCircle, Lock, Unlock, RefreshCw, Store, ChevronDown, ChevronUp } from "lucide-react";
 
 const SuperAdminDashboard = () => {
     const navigate = useNavigate();
     const [merchants, setMerchants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    
+    // ✅ අලුතින් එකතු කළ State (Dropdown සඳහා)
+    const [selectedCustomers, setSelectedCustomers] = useState({}); 
+    const [expandedMerchantId, setExpandedMerchantId] = useState(null);
+    const [fetchingCustomers, setFetchingCustomers] = useState(false);
+
     const apiUrl = import.meta.env.VITE_API_URL;
 
     // පාරිභෝගිකයින් ගෙන්නා ගැනීම
@@ -24,7 +30,6 @@ const SuperAdminDashboard = () => {
 
     useEffect(() => {
         const checkAuth = () => {
-            // ✅ 1. Refresh කළත් Logout නොවීමට Session එක චෙක් කිරීම
             const isAuth = sessionStorage.getItem("adminAuthenticated");
 
             if (isAuth === "true") {
@@ -33,21 +38,41 @@ const SuperAdminDashboard = () => {
                 return;
             }
 
-            // ✅ 2. සෙෂන් එකක් නැත්නම් විතරක් පාස්වර්ඩ් එක අහනවා
             const adminPass = prompt("Enter Super Admin Password:");
             
             if (adminPass === "chutiya") {
-                sessionStorage.setItem("adminAuthenticated", "true"); // Session එකේ සේව් කරනවා
+                sessionStorage.setItem("adminAuthenticated", "true"); 
                 setIsAuthenticated(true);
                 fetchMerchants();
             } else {
                 alert("Wrong Password! Access Denied.");
-                navigate('/'); // වැරදි නම් මුල් පිටුවට (Login) යවයි
+                navigate('/'); 
             }
         };
 
         checkAuth();
     }, [navigate]);
+
+    // ✅ කඩේ පාරිභෝගික ලැයිස්තුව පෙන්වීම/සැඟවීම
+    const toggleCustomerList = async (merchantId) => {
+        if (expandedMerchantId === merchantId) {
+            setExpandedMerchantId(null);
+            return;
+        }
+
+        if (!selectedCustomers[merchantId]) {
+            setFetchingCustomers(true);
+            try {
+                const res = await axios.get(`${apiUrl}/get-customers/${merchantId}`);
+                setSelectedCustomers(prev => ({ ...prev, [merchantId]: res.data }));
+            } catch (err) {
+                alert("පාරිභෝගික දත්ත ලබාගැනීම අසාර්ථකයි!");
+            } finally {
+                setFetchingCustomers(false);
+            }
+        }
+        setExpandedMerchantId(merchantId);
+    };
 
     // Block/Unblock කිරීමේ ලොජික් එක
     const handleToggleBlock = async (id) => {
@@ -72,7 +97,6 @@ const SuperAdminDashboard = () => {
         }
     };
 
-    // ✅ ලොග් වෙලා නැත්නම් හෝ පාස්වර්ඩ් එක වැරදි නම් කිසිවක් Render කරන්නේ නැත
     if (!isAuthenticated) return null;
 
     if (loading) return <div className="flex justify-center items-center h-screen font-black uppercase text-slate-400">Loading Admin Panel...</div>;
@@ -85,7 +109,6 @@ const SuperAdminDashboard = () => {
                     <p className="text-slate-500 font-bold uppercase text-xs tracking-widest mt-1">SSK Manager System Control</p>
                 </header>
 
-                {/* Stats Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                     <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm">
                         <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">මුළු කඩවල් ගණන</p>
@@ -101,7 +124,6 @@ const SuperAdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* Merchants Table */}
                 <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -115,43 +137,90 @@ const SuperAdminDashboard = () => {
                             </thead>
                             <tbody>
                                 {merchants.map((m) => (
-                                    <tr key={m._id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-all">
-                                        <td className="p-5">
-                                            <p className="font-black text-slate-800 text-base leading-tight">{m.shopName}</p>
-                                            <p className="text-slate-400 text-xs font-bold uppercase tracking-tighter">{m.ownerName} • {m.phone}</p>
-                                        </td>
-                                        <td className="p-5 text-center">
-                                            <span className="inline-flex items-center justify-center bg-blue-50 text-blue-600 w-10 h-10 rounded-xl font-black">{m.customerCount || 0}</span>
-                                        </td>
-                                        <td className="p-5">
-                                            <div className="flex flex-col gap-1">
-                                                {m.isBlocked ? (
-                                                    <span className="text-[10px] font-black text-red-500 uppercase flex items-center gap-1"><ShieldAlert size={12}/> Account Blocked</span>
-                                                ) : (
-                                                    <span className="text-[10px] font-black text-green-500 uppercase flex items-center gap-1"><CheckCircle size={12}/> Subscription {m.subscriptionStatus}</span>
-                                                )}
-                                                <p className="text-xs font-bold text-slate-400">Expires: {m.expiryDate ? new Date(m.expiryDate).toLocaleDateString('en-GB') : "N/A"}</p>
-                                            </div>
-                                        </td>
-                                        <td className="p-5">
-                                            <div className="flex justify-end gap-2">
-                                                <button 
-                                                    onClick={() => handleRenew(m._id)}
-                                                    className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
-                                                    title="Renew 30 Days"
-                                                >
-                                                    <RefreshCw size={18} />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleToggleBlock(m._id)}
-                                                    className={`p-3 rounded-xl transition-all ${m.isBlocked ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}
-                                                    title={m.isBlocked ? "Unblock" : "Block"}
-                                                >
-                                                    {m.isBlocked ? <Unlock size={18} /> : <Lock size={18} />}
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <React.Fragment key={m._id}>
+                                        <tr 
+                                            className={`border-b border-slate-50 hover:bg-slate-50/50 transition-all cursor-pointer ${expandedMerchantId === m._id ? 'bg-slate-50' : ''}`}
+                                            onClick={() => toggleCustomerList(m._id)}
+                                        >
+                                            <td className="p-5">
+                                                <p className="font-black text-slate-800 text-base leading-tight">{m.shopName}</p>
+                                                <p className="text-slate-400 text-xs font-bold uppercase tracking-tighter">{m.ownerName} • {m.phone}</p>
+                                            </td>
+                                            <td className="p-5 text-center">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <span className="inline-flex items-center justify-center bg-blue-50 text-blue-600 w-10 h-10 rounded-xl font-black">
+                                                        {m.customerCount || 0}
+                                                    </span>
+                                                    {expandedMerchantId === m._id ? <ChevronUp size={16} className="text-slate-300" /> : <ChevronDown size={16} className="text-slate-300" />}
+                                                </div>
+                                            </td>
+                                            <td className="p-5">
+                                                <div className="flex flex-col gap-1">
+                                                    {m.isBlocked ? (
+                                                        <span className="text-[10px] font-black text-red-500 uppercase flex items-center gap-1"><ShieldAlert size={12}/> Account Blocked</span>
+                                                    ) : (
+                                                        <span className="text-[10px] font-black text-green-500 uppercase flex items-center gap-1"><CheckCircle size={12}/> Subscription {m.subscriptionStatus}</span>
+                                                    )}
+                                                    <p className="text-xs font-bold text-slate-400">Expires: {m.expiryDate ? new Date(m.expiryDate).toLocaleDateString('en-GB') : "N/A"}</p>
+                                                </div>
+                                            </td>
+                                            <td className="p-5">
+                                                <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                                                    <button 
+                                                        onClick={() => handleRenew(m._id)}
+                                                        className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
+                                                        title="Renew 30 Days"
+                                                    >
+                                                        <RefreshCw size={18} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleToggleBlock(m._id)}
+                                                        className={`p-3 rounded-xl transition-all ${m.isBlocked ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}
+                                                        title={m.isBlocked ? "Unblock" : "Block"}
+                                                    >
+                                                        {m.isBlocked ? <Unlock size={18} /> : <Lock size={18} />}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        {/* ✅ Expanded Customer List Section */}
+                                        {expandedMerchantId === m._id && (
+                                            <tr className="bg-slate-50/50">
+                                                <td colSpan="4" className="p-6">
+                                                    <div className="bg-white rounded-[24px] p-5 shadow-inner border border-slate-100">
+                                                        <h4 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest flex items-center gap-2">
+                                                            <Users size={12}/> {m.shopName} - පාරිභෝගික ලැයිස්තුව
+                                                        </h4>
+                                                        
+                                                        {fetchingCustomers ? (
+                                                            <p className="text-xs font-bold text-slate-400 animate-pulse text-center py-4 uppercase">දත්ත ලබාගනිමින් පවතී...</p>
+                                                        ) : selectedCustomers[m._id] && selectedCustomers[m._id].length > 0 ? (
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                                {selectedCustomers[m._id].map(cust => (
+                                                                    <div key={cust._id} className="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors">
+                                                                        <div>
+                                                                            <p className="font-black text-slate-800 text-sm leading-none">{cust.name}</p>
+                                                                            <p className="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-tighter">{cust.phone}</p>
+                                                                        </div>
+                                                                        <div className="text-right">
+                                                                            <p className="text-sm font-black text-red-500">Rs. {cust.debtAmount?.toLocaleString()}</p>
+                                                                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Debt</p>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-center py-8">
+                                                                <Store size={32} className="mx-auto text-slate-200 mb-2" />
+                                                                <p className="text-xs font-bold text-slate-400 italic">මෙම කඩේ තවම පාරිභෝගිකයින් ලියාපදිංචි කර නැත.</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </React.Fragment>
                                 ))}
                             </tbody>
                         </table>
