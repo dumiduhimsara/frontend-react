@@ -20,18 +20,32 @@ const SuperAdminDashboard = () => {
         }
     };
 
-    useEffect(() => {
-        // ✅ පිටුව Load වෙද්දී Password එක විමසීම
+   useEffect(() => {
+    const checkAuth = () => {
+        // ✅ 1. කලින් ලොග් වෙලා ඉන්නවද කියලා බලනවා
+        const isAuth = sessionStorage.getItem("adminAuthenticated");
+
+        if (isAuth === "true") {
+            setIsAuthenticated(true);
+            fetchMerchants();
+            return;
+        }
+
+        // ✅ 2. නැත්නම් විතරක් පාස්වර්ඩ් එක අහනවා
         const adminPass = prompt("Enter Super Admin Password:");
         
-        if (adminPass === "pakaya") { // 👈 උඹ ඉල්ලපු password එක
+        if (adminPass === "pakaya") {
+            sessionStorage.setItem("adminAuthenticated", "true"); // Session එක සේව් කරනවා
             setIsAuthenticated(true);
             fetchMerchants();
         } else {
             alert("Wrong Password! Access Denied.");
-            window.location.href = "/"; // වැරදි නම් මුල් පිටුවට (Login) යවයි
+            window.location.href = "/";
         }
-    }, []);
+    };
+
+    checkAuth();
+}, [navigate]);
 
     // Block/Unblock කිරීම
     const handleToggleBlock = async (id) => {
