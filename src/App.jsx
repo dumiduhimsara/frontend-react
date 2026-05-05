@@ -15,7 +15,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/reports" element={<ReportsPage />} /> 
-        <Route path="/super-admin-portal-ssk" element={<SuperAdminDashboard />} />
+        <Route path="/admin-master-control-v3-secure-2026" element={<SuperAdminDashboard />} />
       </Routes>
     </Router>
   );

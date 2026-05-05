@@ -1,53 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // ✅ Redirect කිරීම සඳහා
 import { Users, ShieldAlert, CheckCircle, Lock, Unlock, RefreshCw, Store } from "lucide-react";
 
 const SuperAdminDashboard = () => {
+    const navigate = useNavigate();
     const [merchants, setMerchants] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false); // ✅ Auth එක check කිරීමට
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const apiUrl = import.meta.env.VITE_API_URL;
 
-    // සියලුම Merchants ලා ගෙන්නා ගැනීම
+    // පාරිභෝගිකයින් ගෙන්නා ගැනීම
     const fetchMerchants = async () => {
         try {
             const res = await axios.get(`${apiUrl}/admin/get-all-merchants`);
             setMerchants(res.data);
         } catch (err) {
-            alert("Error fetching data!");
+            console.error("Error fetching data!");
         } finally {
             setLoading(false);
         }
     };
 
-   useEffect(() => {
-    const checkAuth = () => {
-        // ✅ 1. කලින් ලොග් වෙලා ඉන්නවද කියලා බලනවා
-        const isAuth = sessionStorage.getItem("adminAuthenticated");
+    useEffect(() => {
+        const checkAuth = () => {
+            // ✅ 1. Refresh කළත් Logout නොවීමට Session එක චෙක් කිරීම
+            const isAuth = sessionStorage.getItem("adminAuthenticated");
 
-        if (isAuth === "true") {
-            setIsAuthenticated(true);
-            fetchMerchants();
-            return;
-        }
+            if (isAuth === "true") {
+                setIsAuthenticated(true);
+                fetchMerchants();
+                return;
+            }
 
-        // ✅ 2. නැත්නම් විතරක් පාස්වර්ඩ් එක අහනවා
-        const adminPass = prompt("Enter Super Admin Password:");
-        
-        if (adminPass === "pakaya") {
-            sessionStorage.setItem("adminAuthenticated", "true"); // Session එක සේව් කරනවා
-            setIsAuthenticated(true);
-            fetchMerchants();
-        } else {
-            alert("Wrong Password! Access Denied.");
-            window.location.href = "/";
-        }
-    };
+            // ✅ 2. සෙෂන් එකක් නැත්නම් විතරක් පාස්වර්ඩ් එක අහනවා
+            const adminPass = prompt("Enter Super Admin Password:");
+            
+            if (adminPass === "pakaya") {
+                sessionStorage.setItem("adminAuthenticated", "true"); // Session එකේ සේව් කරනවා
+                setIsAuthenticated(true);
+                fetchMerchants();
+            } else {
+                alert("Wrong Password! Access Denied.");
+                navigate('/'); // වැරදි නම් මුල් පිටුවට (Login) යවයි
+            }
+        };
 
-    checkAuth();
-}, [navigate]);
+        checkAuth();
+    }, [navigate]);
 
-    // Block/Unblock කිරීම
+    // Block/Unblock කිරීමේ ලොජික් එක
     const handleToggleBlock = async (id) => {
         if (!window.confirm("ඔබට මෙම කඩයේ තත්ත්වය වෙනස් කිරීමට අවශ්‍යද?")) return;
         try {
@@ -58,7 +60,7 @@ const SuperAdminDashboard = () => {
         }
     };
 
-    // Subscription Renew කිරීම
+    // Subscription Renew කිරීමේ ලොජික් එක
     const handleRenew = async (id) => {
         if (!window.confirm("මෙම ගිණුම තව දින 30කට අලුත් කිරීමට අවශ්‍යද?")) return;
         try {
@@ -70,10 +72,10 @@ const SuperAdminDashboard = () => {
         }
     };
 
-    // පස්වර්ඩ් එක වැරදි නම් කිසිවක් පෙන්වන්නේ නැත
+    // ✅ ලොග් වෙලා නැත්නම් හෝ පාස්වර්ඩ් එක වැරදි නම් කිසිවක් Render කරන්නේ නැත
     if (!isAuthenticated) return null;
 
-    if (loading) return <div className="flex justify-center items-center h-screen font-black uppercase tracking-widest text-slate-400">Loading Admin Panel...</div>;
+    if (loading) return <div className="flex justify-center items-center h-screen font-black uppercase text-slate-400">Loading Admin Panel...</div>;
 
     return (
         <div className="min-h-screen bg-slate-50 p-4 md:p-10 font-sans text-left">
