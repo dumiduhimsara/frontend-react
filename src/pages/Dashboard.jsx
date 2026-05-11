@@ -4,7 +4,8 @@ import CustomerDetailsModal from '../components/CustomerDetailsModal';
 import { 
   LayoutDashboard, Users, TrendingUp, Menu, X, PlusCircle, 
   MinusCircle, Phone, AlertCircle, Bell, MessageCircle, 
-  PhoneOutgoing, LogOut, FileText, AlertTriangle
+  MessageSquareText,
+  LogOut, FileText, AlertTriangle
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -302,7 +303,7 @@ const Dashboard = () => {
                                             ) : (
                                                 <>
                                                     <button onClick={() => sendWhatsApp(c, 'overdue')} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all active:scale-90"><MessageCircle size={18} /></button>
-                                                    <button onClick={() => sendSMS(c, 'overdue')} className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all active:scale-90"><PhoneOutgoing size={18} /></button>
+                                                    <button onClick={() => sendSMS(c, 'overdue')} className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all active:scale-90"> <MessageSquareText size={18} /> </button>
                                                 </>
                                             )}
                                         </div>
@@ -337,7 +338,7 @@ const Dashboard = () => {
                                                 ) : (
                                                     <>
                                                         <button onClick={() => sendWhatsApp(c, 'upcoming')} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all active:scale-90"><MessageCircle size={18} /></button>
-                                                        <button onClick={() => sendSMS(c, 'upcoming')} className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all active:scale-90"><PhoneOutgoing size={18} /></button>
+                                                        <button onClick={() => sendSMS(c, 'upcoming')} className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all active:scale-90"> <MessageSquareText size={18} /> </button>
                                                     </>
                                                 )}
                                             </div>
